@@ -1012,9 +1012,8 @@
       journeyPoints,
       pilgrim: pilgrimScene,
     });
-    // A refreshed 3D scene always returns to the shared top view so it cannot
-    // retain an old orbit that makes the new target appear inverted or hidden.
-    map3d.reset();
+    // Redrawing the scene must not change the user's orbit, pan, or zoom.
+    // Camera reset is reserved for the dedicated Reset Map control.
     map3d.resize();
     const camera = map3d.getCamera();
     els.zoomReadout.textContent = `ORBIT ${Math.round((DEFAULT_3D_DISTANCE / camera.distance) * 100)}%`;
@@ -1212,8 +1211,6 @@
       return;
     }
     state.settings.mapView = state.settings.mapView === "3d" ? "2d" : "3d";
-    resetViewport();
-    map3d.reset();
     writeSettings();
     logActivity(state.settings.mapView === "3d" ? "3D orbit map enabled" : "2D projection restored");
     renderAll();
@@ -1967,7 +1964,6 @@
       gridSize: math.clamp(Number(els.gridSizeInput.value) || 16, 8, 64),
       mapHeight: math.clamp(Number(els.mapHeightInput.value) || 560, 320, 960),
     };
-    resetViewport();
     writeSettings();
     logActivity("Navigation settings saved locally");
     showToast("Settings saved and applied.");
