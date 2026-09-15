@@ -1,0 +1,704 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Pilgrim Star Path Reimagined — a local-first deep-space navigation console."
+    />
+    <title>Pilgrim Star Path Reimagined</title>
+    <link rel="stylesheet" href="styles.css?v=35" />
+  </head>
+  <body>
+    <div class="ambient-glow ambient-glow-one"></div>
+    <div class="ambient-glow ambient-glow-two"></div>
+
+    <header class="topbar">
+      <div class="brand-group">
+        <div class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img">
+            <path d="M24 2 43 24 24 46 5 24 24 2Z" fill="none" stroke="currentColor" stroke-width="1.5" />
+            <path d="m24 8 7.5 16-7.5 16-7.5-16L24 8Z" fill="currentColor" opacity=".8" />
+            <circle cx="24" cy="24" r="3" fill="#061018" stroke="currentColor" stroke-width="1.5" />
+          </svg>
+        </div>
+        <div>
+          <div class="brand-kicker">INTERGALACTIC NAVIGATION NETWORK</div>
+          <div class="brand-title">PILGRIM <span>STAR PATH</span></div>
+        </div>
+        <span class="version-badge">REIMAGINED / v1.0</span>
+      </div>
+
+      <div class="topbar-right">
+        <span class="topbar-item"><span class="status-dot"></span> LOCAL ENGINE</span>
+        <span class="topbar-item muted">NO EXTERNAL DATA</span>
+        <span class="topbar-divider"></span>
+        <span class="topbar-item"><span id="utcClock">00:00:00 UTC</span></span>
+      </div>
+    </header>
+
+    <div class="app-layout">
+      <aside class="rail" aria-label="Primary navigation">
+        <div class="rail-nav">
+          <button class="rail-button is-active" data-view="map" aria-label="Navigation console" aria-current="page" title="Navigation console">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5 10 3l4 2 6-2v15.5L14 21l-4-2-6 2V5.5Z"/><path d="M10 3v16M14 5v16"/></svg>
+            <span>MAP</span>
+          </button>
+          <button class="rail-button" data-view="destinations" aria-label="Destinations" title="Destinations">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="2.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+            <span>TARGETS</span>
+          </button>
+          <button class="rail-button" data-view="journeys" aria-label="Journeys" title="Journeys">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5.5h10.5A3.5 3.5 0 0 1 19 9v9.5"/><path d="M5 5.5v13A3.5 3.5 0 0 0 8.5 22H19"/><path d="m14 5 4-3 4 3M14 18l4 3 4-3"/><circle cx="8.5" cy="9" r="1.5"/></svg>
+            <span>JOURNEYS</span>
+          </button>
+          <button class="rail-button" data-view="settings" aria-label="Settings" title="Settings">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h3M11 12h9M4 18h10M18 18h2"/><circle cx="16" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="16" cy="18" r="2"/></svg>
+            <span>CONFIG</span>
+          </button>
+          <button class="rail-button" data-view="help" aria-label="Help" title="Help">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.35 2.35 0 1 1 3.8 1.85c-.95.73-1.6 1.17-1.6 2.65M12 17.2h.01"/></svg>
+            <span>HELP</span>
+          </button>
+        </div>
+        <div class="rail-footer">
+          <div class="rail-signal" title="Local calculations enabled">
+            <span class="signal-pulse"></span>
+            <span>LOCAL</span>
+          </div>
+          <div class="rail-build">BUILD 001</div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <section class="view is-visible" data-view-panel="map" id="mapView">
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">NAVIGATION CONSOLE <span class="eyebrow-line"></span> EUCLID 01</div>
+              <h1>Traveller, your journey awaits</h1>
+              <p class="view-subtitle">Plot a path through the stars</p>
+              <p class="support-copy"><a class="support-link" href="https://pahefu.github.io/pilgrimstarpath/" target="_blank" rel="noopener noreferrer">Support the original creator — visit Pahefu's Pilgrim Star Path and consider a donation ↗</a></p>
+            </div>
+            <div class="heading-actions">
+              <button class="ghost-button" id="recenterButton">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+                Recenter map
+              </button>
+              <button class="ghost-button" id="resetSessionButton" title="Clear this session and its in-progress checkpoints; keep completed journeys">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5v5h5M5.7 10A7.5 7.5 0 1 1 6 16"/></svg>
+                Reset session
+              </button>
+              <button class="ghost-button" id="toggleTopPanelsButton" type="button" aria-controls="summaryGrid" aria-expanded="true" aria-label="Collapse top menus">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg>
+                <span id="toggleTopPanelsLabel">Collapse top menus</span>
+              </button>
+            </div>
+          </div>
+
+          <section class="summary-grid" id="summaryGrid" aria-label="Route summary">
+            <article class="panel top-panel location-card" id="locationPanel" data-top-panel="location" data-top-panel-label="USER LOCATION">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-label">01 / USER LOCATION</span>
+                  <h2>Origin coordinates</h2>
+                </div>
+                <div class="panel-heading-actions">
+                  <button class="panel-drag-handle" type="button" draggable="true" aria-label="Drag to reorder origin coordinates" title="Drag to reorder">⠿</button>
+                  <span class="panel-state state-awaiting" id="locationState"><span class="mini-dot"></span> AWAITING ENTRY</span>
+                </div>
+              </div>
+              <div>
+              <div class="location-field">
+                <span class="field-prefix">ADDR</span>
+                <input id="locationInput" type="text" value="" autocomplete="off" spellcheck="false" aria-label="User location coordinates" />
+                <button class="icon-button" id="copyLocationButton" title="Copy location" aria-label="Copy location">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg>
+                </button>
+              </div>
+              <div class="field-meta">
+                <span><span class="mini-dot"></span> Hex address accepted</span>
+                <span id="locationParseStatus">NO ORIGIN SAVED</span>
+              </div>
+              <div class="button-row">
+                <button class="primary-button" id="updateLocationButton">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a8.5 8.5 0 1 0-8.2-10.8"/><path d="M4 5v5h5"/><circle cx="12" cy="12" r="2.3"/></svg>
+                  Update location
+                </button>
+                <button class="secondary-button" id="drawRingButton">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="m18 6 2-2M6 18l-2 2"/></svg>
+                  Draw B.Hole ring
+                </button>
+              </div>
+              <button class="waypoint-entry-button" id="homeAddWaypointButton">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>
+                <span>Add waypoint</span>
+                <small>NEW TARGET</small>
+              </button>
+              <div class="mini-stat-row">
+                <div><span>GALAXY</span><strong id="galaxySummary">EUCLID 01</strong></div>
+                <div><span>HYPERDRIVE</span><strong id="hyperdriveSummary">1,600 LY</strong></div>
+              </div>
+              <div class="journey-save-note"><span class="mini-dot"></span><span id="journeySaveStatus">LOCATION CHECKPOINTS SAVE TO JOURNEYS</span></div>
+              <div class="origin-journey-points" id="originJourneyPoints" aria-live="polite"></div>
+              <div class="checkpoint-note-box" id="checkpointNoteBox">
+                <div class="checkpoint-note-heading">
+                  <span class="panel-label">CHECKPOINT NOTES</span>
+                  <span id="checkpointNoteStatus">START A JOURNEY TO ADD NOTES</span>
+                </div>
+                <div class="checkpoint-note-entry">
+                  <textarea id="checkpointNoteInput" rows="2" maxlength="240" placeholder="Add a note to this saved waypoint…" disabled></textarea>
+                  <button class="text-button checkpoint-note-save" id="saveCheckpointNoteButton" type="button" disabled title="Save note to the selected journey waypoint">＋ SAVE NOTE</button>
+                </div>
+              </div>
+              </div>
+            </article>
+
+            <article class="panel top-panel target-card" id="destinationProfilePanel" data-top-panel="target" data-top-panel-label="ACTIVE TARGET">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-label">03 / ACTIVE TARGET</span>
+                  <h2>Destination profile</h2>
+                </div>
+                <div class="panel-heading-actions"><button class="panel-drag-handle" type="button" draggable="true" aria-label="Drag to reorder destination profile" title="Drag to reorder">⠿</button><span class="target-index" id="targetIndex">—</span></div>
+              </div>
+              <label class="select-label" for="destinationSelect">Select destination</label>
+              <div class="select-wrap">
+                <select id="destinationSelect" aria-label="Select destination"><option value="">No destination selected</option></select>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
+              </div>
+              <div class="target-address-block">
+                <span>COORDINATE ADDRESS</span>
+                <strong id="targetAddress">—</strong>
+                <small id="targetCoordinateVector">—</small>
+              </div>
+              <div class="target-metrics">
+                <div><span>LINEAR DISTANCE</span><strong id="targetLinearDistance">—</strong></div>
+                <div><span>REGION HEIGHT</span><strong id="targetHeightDiff">—</strong></div>
+              </div>
+              <div class="pilgrim-reference">
+                <div class="pilgrim-reference-heading">
+                  <span class="pilgrim-reference-star">✦</span>
+                  <div><span class="panel-label">PILGRIM STAR REFERENCE</span><strong>Original path marker</strong></div>
+                  <span class="pilgrim-reference-badge">MAP PIN</span>
+                </div>
+                <div class="pilgrim-reference-grid">
+                  <div><span>ADDRESS</span><strong id="pilgrimAddress">064A:0082:01B9:009A</strong></div>
+                  <div><span>POSITION</span><strong id="pilgrimCoordinateVector">x:1610 · y:130 · z:441</strong></div>
+                </div>
+                <p>Kept on the star map as a fixed reference while you plot another destination.</p>
+              </div>
+              <div class="guidance-note">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 12l7.5 9 7.5-9L12 3Z"/><path d="M12 7v10M8.5 12H15.5"/></svg>
+                <p id="guidanceText">Select a destination to calculate guidance.</p>
+              </div>
+            </article>
+
+            <article class="panel top-panel advisory-card" id="advisoryPanel" data-top-panel="advisory" data-top-panel-label="ROUTE ADVISORY">
+              <div class="panel-heading">
+                <div>
+                  <span class="panel-label">02 / ROUTE ADVISORY</span>
+                  <h2>Flight guidance</h2>
+                </div>
+                <div class="panel-heading-actions">
+                  <button class="panel-drag-handle" type="button" draggable="true" aria-label="Drag to reorder flight guidance" title="Drag to reorder">⠿</button>
+                  <span class="panel-state state-waiting" id="advisoryState">WAITING</span>
+                </div>
+              </div>
+              <div>
+              <div class="advisory-main">
+                <div class="advisory-number"><span id="jumpsValue">—</span><small>JUMPS</small></div>
+                <div class="advisory-details">
+                  <div><span>HYPERDRIVE RANGE</span><strong id="jumpRangeValue">1,600 LY</strong></div>
+                  <div><span>DEGREES FROM CENTRE</span><strong><span id="degreesValue">—</span>° <span id="directionValue">—</span></strong></div>
+                </div>
+                <div class="compass-widget">
+                  <div class="compass-heading"><span>GC-NORTH ROUTE</span><strong id="compassBearing">—</strong></div>
+                  <div class="compass-dial" id="compassDial" role="img" aria-label="Galactic centre north route compass">
+                    <div class="compass-orbit"></div>
+                    <div class="compass-ticks" id="compassTicks"></div>
+                    <span class="compass-cardinal compass-galactic-north">GC</span>
+                    <div class="true-north-marker" id="trueNorthMarker" aria-hidden="true"><span>N</span></div>
+                    <div class="ship-pointer" id="shipPointer" aria-hidden="true">
+                      <svg viewBox="0 0 60 76" focusable="false">
+                        <path class="ship-outline" d="M30 2C26 10 24 19 23 28L4 39 20 37 25 43 20 59 29 52 30 72 31 72 32 52 40 59 35 43 40 37 56 39 37 28C36 19 34 10 30 2Z" />
+                      </svg>
+                    </div>
+                    <span class="compass-centre">+</span>
+                  </div>
+                  <div class="compass-footer"><span id="compassCardinal">GC NORTH · N —</span><span id="compassTargetName">NO DESTINATION LOCK</span></div>
+                </div>
+              </div>
+              <div class="warning-strip" id="warningStrip">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 17H3L12 3Z"/><path d="M12 9v4M12 17h.01"/></svg>
+                <span id="warningText">Select a destination to calculate route guidance.</span>
+              </div>
+              <section class="angle-telemetry" id="angleTelemetry" aria-label="Target approach angle telemetry">
+                <div class="angle-telemetry-heading">
+                  <div>
+                    <span class="panel-label">APPROACH TELEMETRY</span>
+                    <h3>Angle of attack <span>/ galactic plane</span></h3>
+                  </div>
+                  <span class="panel-state state-awaiting" id="angleTelemetryState">AWAITING ROUTE</span>
+                </div>
+                <div class="angle-telemetry-body">
+                  <div class="angle-readout">
+                    <strong id="angleAttackValue">—</strong>
+                    <span>DEG FROM PLANE</span>
+                    <small id="angleAttackDirection">SELECT DESTINATION</small>
+                  </div>
+                  <svg class="angle-telemetry-graph" id="angleTelemetryGraph" viewBox="0 0 360 122" role="img" aria-label="Target approach angle graph">
+                    <line class="angle-axis-line" x1="180" y1="15" x2="180" y2="108" />
+                    <line class="angle-plane-line" x1="24" y1="72" x2="336" y2="72" />
+                    <path class="angle-plane-tick" d="M24 68v8M336 68v8" />
+                    <text class="angle-axis-label" x="27" y="24">+90° ABOVE</text>
+                    <text class="angle-axis-label" x="27" y="88">GALACTIC PLANE · 0°</text>
+                    <text class="angle-axis-label" x="27" y="106">−90° BELOW</text>
+                    <circle class="angle-origin-point" cx="180" cy="72" r="3.2" />
+                    <path class="angle-arc" id="angleArc" d="" />
+                    <line class="angle-vector" id="angleVector" x1="180" y1="72" x2="180" y2="72" />
+                    <circle class="angle-target-point" id="angleTargetPoint" cx="180" cy="72" r="4.2" />
+                    <text class="angle-graph-angle" id="angleGraphAngle" x="194" y="61">—</text>
+                    <text class="angle-target-label" id="angleTargetLabel" x="187" y="54">TARGET</text>
+                  </svg>
+                </div>
+                <div class="angle-telemetry-meta">
+                  <span id="angleReferenceText">GALACTIC PLANE = 0° · ROUTE REQUIRED</span>
+                  <span id="angleVerticalDelta">—</span>
+                </div>
+              </section>
+              </div>
+            </article>
+          </section>
+
+          <section class="main-grid">
+            <article class="panel map-panel">
+              <div class="map-panel-heading">
+                <div>
+                  <div class="panel-label" id="mapFrameLabel">GALACTIC REFERENCE FRAME</div>
+                  <h2>Star map <span class="heading-slash">/</span> <span id="mapProjectionLabel">galactic projection</span></h2>
+                </div>
+                <div class="map-heading-tools">
+                  <span class="map-mode"><span class="status-dot"></span> <span id="mapModeLabel">STAR MAP</span></span>
+                  <button class="map-tool" id="zoomOutButton" aria-label="Zoom out">−</button>
+                  <span class="zoom-readout" id="zoomReadout">100%</span>
+                  <button class="map-tool" id="zoomInButton" aria-label="Zoom in">+</button>
+                  <button class="map-tool reset-map-tool" id="resetMapButton" aria-label="Reset map view">⟲</button>
+              <button class="map-tool map-view-toggle" id="mapViewToggle" type="button" aria-label="2D map active; switch to 3D" aria-pressed="false" title="2D map active · click for 3D">2D</button>
+                </div>
+              </div>
+              <div class="map-canvas-wrap" id="mapCanvasWrap">
+                <svg id="starMap" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive galaxy star map">
+                  <defs>
+                    <linearGradient id="spaceGradient" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#06121e" />
+                      <stop offset="55%" stop-color="#071421" />
+                      <stop offset="100%" stop-color="#0b1022" />
+                    </linearGradient>
+                    <radialGradient id="nebulaBlue" cx="50%" cy="50%" r="70%">
+                      <stop offset="0%" stop-color="#5568f0" stop-opacity=".34" />
+                      <stop offset="55%" stop-color="#264bb2" stop-opacity=".11" />
+                      <stop offset="100%" stop-color="#10214c" stop-opacity="0" />
+                    </radialGradient>
+                    <radialGradient id="nebulaViolet" cx="50%" cy="50%" r="72%">
+                      <stop offset="0%" stop-color="#a58bff" stop-opacity=".27" />
+                      <stop offset="56%" stop-color="#553daf" stop-opacity=".1" />
+                      <stop offset="100%" stop-color="#281d69" stop-opacity="0" />
+                    </radialGradient>
+                    <radialGradient id="galaxyDisc" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#fff2d7" stop-opacity=".92" />
+                      <stop offset="11%" stop-color="#f3c9ff" stop-opacity=".72" />
+                      <stop offset="31%" stop-color="#897cff" stop-opacity=".28" />
+                      <stop offset="66%" stop-color="#3267d2" stop-opacity=".1" />
+                      <stop offset="100%" stop-color="#152b78" stop-opacity="0" />
+                    </radialGradient>
+                    <radialGradient id="galaxyCore" cx="50%" cy="50%" r="50%">
+                      <stop offset="0%" stop-color="#fff9e9" stop-opacity="1" />
+                      <stop offset="18%" stop-color="#ffd6ad" stop-opacity=".96" />
+                      <stop offset="52%" stop-color="#c3a2ff" stop-opacity=".55" />
+                      <stop offset="100%" stop-color="#806dff" stop-opacity="0" />
+                    </radialGradient>
+                    <linearGradient id="galaxyArm" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#fff0d0" stop-opacity=".78" />
+                      <stop offset="19%" stop-color="#d8a7ff" stop-opacity=".56" />
+                      <stop offset="55%" stop-color="#64d9ff" stop-opacity=".25" />
+                      <stop offset="100%" stop-color="#3153c0" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient id="galaxyArmWarm" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stop-color="#ffd3a4" stop-opacity=".72" />
+                      <stop offset="38%" stop-color="#aa9aff" stop-opacity=".36" />
+                      <stop offset="100%" stop-color="#3f77e5" stop-opacity="0" />
+                    </linearGradient>
+                    <linearGradient id="routeGradient" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#f9b46b" />
+                      <stop offset="100%" stop-color="#73eaff" />
+                    </linearGradient>
+                    <filter id="softGlow" x="-60%" y="-60%" width="220%" height="220%">
+                      <feGaussianBlur stdDeviation="5" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                    <filter id="smallGlow" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="2" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                    <filter id="galaxyBlur" x="-30%" y="-70%" width="160%" height="240%">
+                      <feGaussianBlur stdDeviation="13" />
+                    </filter>
+                    <filter id="galaxySoftGlow" x="-100%" y="-100%" width="300%" height="300%">
+                      <feGaussianBlur stdDeviation="5" result="blur" />
+                      <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+                    </filter>
+                    <pattern id="minorGrid" width="32" height="32" patternUnits="userSpaceOnUse">
+                      <path d="M32 0H0V32" fill="none" stroke="#36c6df" stroke-opacity=".18" stroke-width="1" />
+                    </pattern>
+                    <pattern id="majorGrid" width="160" height="160" patternUnits="userSpaceOnUse">
+                      <path d="M160 0H0V160" fill="none" stroke="#53e8ff" stroke-opacity=".26" stroke-width="1.2" />
+                    </pattern>
+                  </defs>
+                  <rect width="1000" height="560" fill="url(#spaceGradient)" />
+                  <g id="mapStage">
+                    <g class="galaxy-backdrop" aria-hidden="true" transform="rotate(-10 500 280)">
+                      <ellipse class="galaxy-halo" cx="500" cy="280" rx="475" ry="176" />
+                      <ellipse class="galaxy-disc" cx="500" cy="280" rx="455" ry="151" />
+                      <g class="galaxy-arm-glow" fill="none" stroke-linecap="round" filter="url(#galaxyBlur)">
+                        <path d="M511.4 280 L516.7 280.9 L521.5 282.3 L525.3 284.3 L528 286.7 L529.3 289.4 L528.9 292.4 L526.7 295.5 L522.6 298.5 L516.7 301.5 L508.8 304.1 L499.2 306.4 L488 308 L475.6 309.1 L462.1 309.3 L448 308.7 L433.6 307.2 L419.4 304.7 L405.9 301.3 L393.5 296.9 L382.6 291.7 L373.8 285.7 L367.4 278.9 L363.7 271.6 L363.2 264 L365.9 256.1 L372.1 248.1 L381.8 240.4 L395 233 L411.7 226.3 L431.5 220.3 L454.1 215.4 L479.3 211.7 L506.4 209.3 L535 208.3 L564.4 209 L594 211.3 L623.1 215.3 L650.9 220.9 L676.8 228.2 L700 237 L719.8 247.2 L735.8 258.6 L747.2 271 L753.7 284.1 L754.9 297.8 L750.5 311.6 L740.5 325.4 L724.7 338.7 L703.4 351.3 L676.8 362.8 L645.3 373 L609.5 381.5 L569.9 388.2 L527.3 392.7 L482.6 395 L436.7 394.9 L390.5 392.3 L345.1 387.2 L301.5 379.6 L260.7 369.6 L223.8 357.3 L191.6 343 L164.9 326.9 L144.7 309.3 L131.4 290.5 L125.6 270.9 L127.6 250.9 L137.7 231 L155.8 211.5 L181.7 192.9 L215.2 175.7" />
+                        <path d="M488.6 280 L483.3 279.1 L478.5 277.7 L474.7 275.7 L472 273.3 L470.7 270.6 L471.1 267.6 L473.3 264.5 L477.4 261.5 L483.3 258.5 L491.2 255.9 L500.8 253.6 L512 252 L524.4 250.9 L537.9 250.7 L552 251.3 L566.4 252.8 L580.6 255.3 L594.1 258.7 L606.5 263.1 L617.4 268.3 L626.2 274.3 L632.6 281.1 L636.3 288.4 L636.8 296 L634.1 303.9 L627.9 311.9 L618.2 319.6 L605 327 L588.3 333.7 L568.5 339.7 L545.9 344.6 L520.7 348.3 L493.6 350.7 L465 351.7 L435.6 351 L406 348.7 L376.9 344.7 L349.1 339.1 L323.2 331.8 L300 323 L280.2 312.8 L264.2 301.4 L252.8 289 L246.3 275.9 L245.1 262.2 L249.5 248.4 L259.5 234.6 L275.3 221.3 L296.6 208.7 L323.2 197.2 L354.7 187 L390.5 178.5 L430.1 171.8 L472.7 167.3 L517.4 165 L563.3 165.1 L609.5 167.7 L654.9 172.8 L698.5 180.4 L739.3 190.4 L776.2 202.7 L808.4 217 L835.1 233.1 L855.3 250.7 L868.6 269.5 L874.4 289.1 L872.4 309.1 L862.3 329 L844.2 348.5 L818.3 367.1 L784.8 384.3" />
+                      </g>
+                      <g class="galaxy-arms" fill="none" stroke-linecap="round">
+                        <path d="M511.4 280 L516.7 280.9 L521.5 282.3 L525.3 284.3 L528 286.7 L529.3 289.4 L528.9 292.4 L526.7 295.5 L522.6 298.5 L516.7 301.5 L508.8 304.1 L499.2 306.4 L488 308 L475.6 309.1 L462.1 309.3 L448 308.7 L433.6 307.2 L419.4 304.7 L405.9 301.3 L393.5 296.9 L382.6 291.7 L373.8 285.7 L367.4 278.9 L363.7 271.6 L363.2 264 L365.9 256.1 L372.1 248.1 L381.8 240.4 L395 233 L411.7 226.3 L431.5 220.3 L454.1 215.4 L479.3 211.7 L506.4 209.3 L535 208.3 L564.4 209 L594 211.3 L623.1 215.3 L650.9 220.9 L676.8 228.2 L700 237 L719.8 247.2 L735.8 258.6 L747.2 271 L753.7 284.1 L754.9 297.8 L750.5 311.6 L740.5 325.4 L724.7 338.7 L703.4 351.3 L676.8 362.8 L645.3 373 L609.5 381.5 L569.9 388.2 L527.3 392.7 L482.6 395 L436.7 394.9 L390.5 392.3 L345.1 387.2 L301.5 379.6 L260.7 369.6 L223.8 357.3 L191.6 343 L164.9 326.9 L144.7 309.3 L131.4 290.5 L125.6 270.9 L127.6 250.9 L137.7 231 L155.8 211.5 L181.7 192.9 L215.2 175.7" stroke="url(#galaxyArm)" stroke-width="37" />
+                        <path d="M488.6 280 L483.3 279.1 L478.5 277.7 L474.7 275.7 L472 273.3 L470.7 270.6 L471.1 267.6 L473.3 264.5 L477.4 261.5 L483.3 258.5 L491.2 255.9 L500.8 253.6 L512 252 L524.4 250.9 L537.9 250.7 L552 251.3 L566.4 252.8 L580.6 255.3 L594.1 258.7 L606.5 263.1 L617.4 268.3 L626.2 274.3 L632.6 281.1 L636.3 288.4 L636.8 296 L634.1 303.9 L627.9 311.9 L618.2 319.6 L605 327 L588.3 333.7 L568.5 339.7 L545.9 344.6 L520.7 348.3 L493.6 350.7 L465 351.7 L435.6 351 L406 348.7 L376.9 344.7 L349.1 339.1 L323.2 331.8 L300 323 L280.2 312.8 L264.2 301.4 L252.8 289 L246.3 275.9 L245.1 262.2 L249.5 248.4 L259.5 234.6 L275.3 221.3 L296.6 208.7 L323.2 197.2 L354.7 187 L390.5 178.5 L430.1 171.8 L472.7 167.3 L517.4 165 L563.3 165.1 L609.5 167.7 L654.9 172.8 L698.5 180.4 L739.3 190.4 L776.2 202.7 L808.4 217 L835.1 233.1 L855.3 250.7 L868.6 269.5 L874.4 289.1 L872.4 309.1 L862.3 329 L844.2 348.5 L818.3 367.1 L784.8 384.3" stroke="url(#galaxyArmWarm)" stroke-width="32" />
+                        <path d="M511.4 280 L516.7 280.9 L521.5 282.3 L525.3 284.3 L528 286.7 L529.3 289.4 L528.9 292.4 L526.7 295.5 L522.6 298.5 L516.7 301.5 L508.8 304.1 L499.2 306.4 L488 308 L475.6 309.1 L462.1 309.3 L448 308.7 L433.6 307.2 L419.4 304.7 L405.9 301.3 L393.5 296.9 L382.6 291.7 L373.8 285.7 L367.4 278.9 L363.7 271.6 L363.2 264 L365.9 256.1 L372.1 248.1 L381.8 240.4 L395 233 L411.7 226.3 L431.5 220.3 L454.1 215.4 L479.3 211.7 L506.4 209.3 L535 208.3 L564.4 209 L594 211.3 L623.1 215.3 L650.9 220.9 L676.8 228.2 L700 237 L719.8 247.2 L735.8 258.6 L747.2 271 L753.7 284.1 L754.9 297.8 L750.5 311.6 L740.5 325.4 L724.7 338.7 L703.4 351.3 L676.8 362.8 L645.3 373 L609.5 381.5 L569.9 388.2 L527.3 392.7 L482.6 395 L436.7 394.9 L390.5 392.3 L345.1 387.2 L301.5 379.6 L260.7 369.6 L223.8 357.3 L191.6 343 L164.9 326.9 L144.7 309.3 L131.4 290.5 L125.6 270.9 L127.6 250.9 L137.7 231 L155.8 211.5 L181.7 192.9 L215.2 175.7" stroke="#e2c8ff" stroke-width="9" opacity=".48" />
+                        <path d="M488.6 280 L483.3 279.1 L478.5 277.7 L474.7 275.7 L472 273.3 L470.7 270.6 L471.1 267.6 L473.3 264.5 L477.4 261.5 L483.3 258.5 L491.2 255.9 L500.8 253.6 L512 252 L524.4 250.9 L537.9 250.7 L552 251.3 L566.4 252.8 L580.6 255.3 L594.1 258.7 L606.5 263.1 L617.4 268.3 L626.2 274.3 L632.6 281.1 L636.3 288.4 L636.8 296 L634.1 303.9 L627.9 311.9 L618.2 319.6 L605 327 L588.3 333.7 L568.5 339.7 L545.9 344.6 L520.7 348.3 L493.6 350.7 L465 351.7 L435.6 351 L406 348.7 L376.9 344.7 L349.1 339.1 L323.2 331.8 L300 323 L280.2 312.8 L264.2 301.4 L252.8 289 L246.3 275.9 L245.1 262.2 L249.5 248.4 L259.5 234.6 L275.3 221.3 L296.6 208.7 L323.2 197.2 L354.7 187 L390.5 178.5 L430.1 171.8 L472.7 167.3 L517.4 165 L563.3 165.1 L609.5 167.7 L654.9 172.8 L698.5 180.4 L739.3 190.4 L776.2 202.7 L808.4 217 L835.1 233.1 L855.3 250.7 L868.6 269.5 L874.4 289.1 L872.4 309.1 L862.3 329 L844.2 348.5 L818.3 367.1 L784.8 384.3" stroke="#a990ff" stroke-width="8" opacity=".4" />
+                      </g>
+                      <g class="galaxy-dust-lanes" fill="none" stroke-linecap="round">
+                        <path d="M511.4 280 L516.7 280.9 L521.5 282.3 L525.3 284.3 L528 286.7 L529.3 289.4 L528.9 292.4 L526.7 295.5 L522.6 298.5 L516.7 301.5 L508.8 304.1 L499.2 306.4 L488 308 L475.6 309.1 L462.1 309.3 L448 308.7 L433.6 307.2 L419.4 304.7 L405.9 301.3 L393.5 296.9 L382.6 291.7 L373.8 285.7 L367.4 278.9 L363.7 271.6 L363.2 264 L365.9 256.1 L372.1 248.1 L381.8 240.4 L395 233 L411.7 226.3 L431.5 220.3 L454.1 215.4 L479.3 211.7 L506.4 209.3 L535 208.3 L564.4 209 L594 211.3 L623.1 215.3 L650.9 220.9 L676.8 228.2 L700 237 L719.8 247.2 L735.8 258.6 L747.2 271 L753.7 284.1 L754.9 297.8 L750.5 311.6 L740.5 325.4 L724.7 338.7 L703.4 351.3 L676.8 362.8 L645.3 373 L609.5 381.5 L569.9 388.2 L527.3 392.7 L482.6 395 L436.7 394.9 L390.5 392.3 L345.1 387.2 L301.5 379.6 L260.7 369.6 L223.8 357.3 L191.6 343 L164.9 326.9 L144.7 309.3 L131.4 290.5 L125.6 270.9 L127.6 250.9 L137.7 231 L155.8 211.5 L181.7 192.9 L215.2 175.7" />
+                        <path d="M488.6 280 L483.3 279.1 L478.5 277.7 L474.7 275.7 L472 273.3 L470.7 270.6 L471.1 267.6 L473.3 264.5 L477.4 261.5 L483.3 258.5 L491.2 255.9 L500.8 253.6 L512 252 L524.4 250.9 L537.9 250.7 L552 251.3 L566.4 252.8 L580.6 255.3 L594.1 258.7 L606.5 263.1 L617.4 268.3 L626.2 274.3 L632.6 281.1 L636.3 288.4 L636.8 296 L634.1 303.9 L627.9 311.9 L618.2 319.6 L605 327 L588.3 333.7 L568.5 339.7 L545.9 344.6 L520.7 348.3 L493.6 350.7 L465 351.7 L435.6 351 L406 348.7 L376.9 344.7 L349.1 339.1 L323.2 331.8 L300 323 L280.2 312.8 L264.2 301.4 L252.8 289 L246.3 275.9 L245.1 262.2 L249.5 248.4 L259.5 234.6 L275.3 221.3 L296.6 208.7 L323.2 197.2 L354.7 187 L390.5 178.5 L430.1 171.8 L472.7 167.3 L517.4 165 L563.3 165.1 L609.5 167.7 L654.9 172.8 L698.5 180.4 L739.3 190.4 L776.2 202.7 L808.4 217 L835.1 233.1 L855.3 250.7 L868.6 269.5 L874.4 289.1 L872.4 309.1 L862.3 329 L844.2 348.5 L818.3 367.1 L784.8 384.3" />
+                      </g>
+                      <ellipse class="galaxy-core" cx="500" cy="280" rx="118" ry="66" />
+                      <ellipse class="galaxy-core-hot" cx="500" cy="280" rx="47" ry="30" />
+                      <circle class="galaxy-core-star" cx="500" cy="280" r="8" />
+                    </g>
+                    <g id="starLayer"></g>
+                    <g id="galaxyGridLayer">
+                      <rect width="1000" height="560" fill="url(#minorGrid)" />
+                      <rect width="1000" height="560" fill="url(#majorGrid)" />
+                    </g>
+                    <g id="localGridLayer" aria-hidden="true"></g>
+                    <g class="axis-layer">
+                      <path d="M30 42H180M30 42V160" />
+                      <path d="m180 42-8-5v10l8-5ZM30 160l-5-8h10l-5 8Z" fill="currentColor" stroke="none" />
+                      <text x="187" y="48">X</text>
+                      <text x="23" y="179">Z</text>
+                      <text x="42" y="30">NORTH / GALACTIC PLANE</text>
+                    </g>
+                    <g id="routeLayer"></g>
+                    <g id="ringLayer"></g>
+                    <g id="markerLayer"></g>
+                  </g>
+                </svg>
+                <canvas id="starMap3d" aria-label="Interactive 3D galaxy map"></canvas>
+                <div class="map-3d-hud" id="map3dHud" hidden>
+                  <span><i></i> 3D ORBIT VIEW</span>
+                </div>
+                <div class="map-corner map-corner-top-left"><span></span><span></span></div>
+                <div class="map-corner map-corner-top-right"><span></span><span></span></div>
+                <div class="map-corner map-corner-bottom-left"><span></span><span></span></div>
+                <div class="map-corner map-corner-bottom-right"><span></span><span></span></div>
+                <div class="map-overlay map-overlay-top"><span id="mapFrameReadout">FULL GALACTIC FRAME · 0–4096</span><span id="mapGestureReadout">DRAG TO PAN · SMOOTH SCROLL ZOOM</span></div>
+                <div class="map-overlay map-overlay-bottom"><span id="mapCoordinateReadout">ORIGIN NOT SET</span><span id="mapStatusReadout">DESTINATION REQUIRED</span></div>
+              </div>
+              <div class="map-footer">
+                <div class="legend">
+                  <span><i class="legend-dot center"></i> GALAXY CENTRE</span>
+                  <span><i class="legend-dot user"></i> USER LOCATION</span>
+                  <span><i class="legend-dot target"></i> DESTINATION</span>
+                  <span><i class="legend-dot pilgrim"></i> PILGRIM STAR REFERENCE</span>
+                  <span><i class="legend-line"></i> ROUTE VECTOR</span>
+                  <span><i class="legend-line journey"></i> JOURNEY TRACE · 2D / 3D</span>
+                </div>
+                <div class="map-footer-actions">
+                  <button class="text-button" id="snapUserButton" type="button" disabled title="Snap the current map view to your saved origin" aria-label="Snap map to user location">⌾ <span>SNAP TO USER</span></button>
+                  <button class="text-button nametag-toggle is-on" id="nametagToggleButton" type="button" aria-pressed="true" title="Hide map nametags" aria-label="Map nametags on">TAG <span id="nametagToggleLabel">ON</span></button>
+                  <button class="text-button" id="localModeButton" aria-pressed="false"><span class="status-dot"></span><span id="localModeLabel">Set local mode</span></button>
+                </div>
+              </div>
+            </article>
+
+            <aside class="telemetry-stack" aria-label="Route telemetry and stored waypoints">
+              <article class="panel route-card" id="routePanel">
+                <div class="panel-heading compact-heading">
+                  <div>
+                    <span class="panel-label">LIVE ROUTE</span>
+                    <h2>Route telemetry</h2>
+                  </div>
+                  <span class="panel-state state-waiting" id="routeState">WAITING</span>
+                </div>
+                <div class="route-table">
+                  <div class="route-row"><span class="route-key">POS</span><strong id="posValue">—</strong></div>
+                  <div class="route-row"><span class="route-key">DEST</span><strong id="destValue">—</strong></div>
+                  <div class="route-row"><span class="route-key">TO CENTRE</span><strong><span id="centerDistanceValue">—</span> <small>LY</small></strong></div>
+                  <div class="route-row"><span class="route-key">TO DEST</span><strong><span id="destinationDistanceValue">—</span> <small>LY</small></strong></div>
+                </div>
+              </article>
+
+              <article class="panel destination-list-card">
+                <div class="panel-heading compact-heading">
+                  <div>
+                    <span class="panel-label">STORED WAYPOINTS</span>
+                    <h2>Stored waypoints</h2>
+                  </div>
+                  <div class="panel-heading-actions">
+                    <button class="small-action restore-waypoints-action" id="restoreWaypointsButton" type="button" disabled title="All waypoints are present" aria-label="All waypoints are present">↺ RESTORE</button>
+                    <button class="small-action" id="addMockButton" type="button" title="Add a custom destination" aria-label="Add a custom destination">+</button>
+                  </div>
+                </div>
+                <div id="destinationList" class="destination-list"></div>
+              </article>
+
+              <article class="panel activity-card">
+                <div class="panel-heading compact-heading">
+                  <div>
+                    <span class="panel-label">LOCAL EVENT LOG</span>
+                    <h2>Session activity</h2>
+                  </div>
+                  <span class="activity-live"><span class="signal-pulse"></span> LIVE</span>
+                </div>
+                <div id="activityLog" class="activity-log"></div>
+              </article>
+            </aside>
+          </section>
+
+          <details class="orientation-dropdown panel">
+            <summary>
+              <span class="orientation-summary-icon">⌖</span>
+              <span class="orientation-summary-copy">
+                <span class="panel-label">FIELD INSTRUCTION</span>
+                <strong>How to orientate yourself</strong>
+              </span>
+              <span class="orientation-summary-hint">OPEN GUIDE <b>+</b></span>
+            </summary>
+            <div class="orientation-content">
+              <div class="orientation-quote-block">
+                <span class="panel-label">ORIGINAL PILGRIM STAR PATH INSTRUCTION</span>
+                <p id="orientationInstructionText">Looking at the center, turn 177.02 degrees to your right.</p>
+                <small>The Galactic Centre is your reference north. Turn from that line toward the selected waypoint.</small>
+              </div>
+              <div class="orientation-steps">
+                <div><b>01</b><p><strong>Enter your location.</strong> Use the four-block galactic address, then update the origin checkpoint.</p></div>
+                <div><b>02</b><p><strong>Face the centre.</strong> Treat the Galactic Centre marker and the GC compass bearing as north.</p></div>
+                <div><b>03</b><p><strong>Turn the displayed bearing.</strong> The route tells you how many degrees to turn and whether to turn left or right.</p></div>
+                <div><b>04</b><p><strong>Check your vertical offset.</strong> Above or below shows the Y-axis difference; use the 3D map to inspect that height.</p></div>
+              </div>
+            </div>
+          </details>
+
+          <section class="quick-strip">
+            <div class="quick-item"><span class="quick-icon">⌖</span><span><strong>Coordinate engine</strong><small>Hex and decimal inputs supported</small></span></div>
+            <div class="quick-item"><span class="quick-icon">◎</span><span><strong>Black-hole planning</strong><small>Visualise ring distance and route vectors</small></span></div>
+            <div class="quick-item"><span class="quick-icon">↗</span><span><strong>Local-first by design</strong><small>Your session stays in this browser</small></span></div>
+            <div class="quick-meta">PILGRIM STAR PATH <span>·</span> GALACTIC REFERENCE FRAME</div>
+          </section>
+        </section>
+
+        <section class="view" data-view-panel="destinations" id="destinationsView" hidden>
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">WAYPOINT DIRECTORY <span class="eyebrow-line"></span> LOCAL DATASET</div>
+              <h1>Keep your destinations close.</h1>
+              <p class="view-subtitle">Three community-civilization waypoints are stored locally, with custom entries available for your own route. Pilgrim Star remains a highlighted map reference.</p>
+            </div>
+            <button class="primary-button" id="directoryAddButton"><span class="button-plus">+</span> Add custom target</button>
+          </div>
+          <div class="directory-grid">
+            <article class="panel directory-panel">
+              <div class="panel-heading">
+                <div><span class="panel-label">LOCAL DIRECTORY</span><h2>Saved waypoints</h2></div>
+                <span class="directory-count" id="directoryCount">03 TARGETS</span>
+              </div>
+              <div id="destinationDirectory" class="directory-list"></div>
+            </article>
+            <article class="panel workflow-panel">
+              <div class="panel-heading"><div><span class="panel-label">WORKFLOW</span><h2>How this build grows</h2></div></div>
+              <div class="workflow-steps">
+                <div class="workflow-step is-complete"><span>01</span><div><strong>Plot the local route</strong><p>Enter an origin, select a community waypoint and validate the visual route.</p></div><i>✓</i></div>
+                <div class="workflow-step is-current"><span>02</span><div><strong>Calibrate the maths</strong><p>Keep the calculation engine separate and compare it with known examples.</p></div><i>NOW</i></div>
+                <div class="workflow-step"><span>03</span><div><strong>Connect real datasets</strong><p>Add external sources only after the local experience is stable.</p></div><i>SOON</i></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view-panel="journeys" id="journeysView" hidden>
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">JOURNEY ARCHIVE <span class="eyebrow-line"></span> LOCAL FLIGHT RECORD</div>
+              <h1>Keep the path you travelled.</h1>
+              <p class="view-subtitle">Every updated origin becomes a checkpoint. Resume an active record after returning, or restore a completed journey to replay its trail in both map views.</p>
+            </div>
+            <button class="primary-button" id="newJourneyButton" type="button"><span class="button-plus">+</span> New journey</button>
+          </div>
+          <div class="journey-grid">
+            <article class="panel journey-focus-panel">
+              <div class="panel-heading">
+                <div><span class="panel-label" id="journeyFocusLabel">ACTIVE JOURNEY</span><h2 id="activeJourneyName">No active journey</h2></div>
+                <span class="panel-state state-live" id="activeJourneyStatus">READY</span>
+              </div>
+              <div class="journey-metrics">
+                <div><span>CHECKPOINTS</span><strong id="activeJourneyPointCount">0</strong></div>
+                <div><span>STARTED</span><strong id="activeJourneyStart">—</strong></div>
+                <div><span>DESTINATION</span><strong id="activeJourneyDestination">—</strong></div>
+              </div>
+              <div class="journey-actions">
+                <button class="primary-button" id="journeyNewButton" type="button"><span class="button-plus">+</span> New journey</button>
+                <button class="secondary-button" id="restoreJourneyButton" type="button" disabled>Restore on map</button>
+                <button class="secondary-button" id="completeJourneyButton" type="button" disabled>Complete journey</button>
+              </div>
+              <div class="journey-route-heading"><span>RECORDED ROUTE</span><span id="journeyTrailHint">Update origin to log the first checkpoint.</span></div>
+              <div id="activeJourneyPoints" class="journey-points"></div>
+            </article>
+            <article class="panel journey-history-panel">
+              <div class="panel-heading">
+                <div><span class="panel-label">LOCAL FLIGHT RECORDS</span><h2>Saved journeys</h2></div>
+                <span class="directory-count" id="journeyCount">00 JOURNEYS</span>
+              </div>
+              <div id="journeyList" class="journey-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view-panel="settings" id="settingsView" hidden>
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">SYSTEM CONFIGURATION <span class="eyebrow-line"></span> PERSISTENT SETTINGS</div>
+              <h1>Shape the console to your ship.</h1>
+              <p class="view-subtitle">These settings are saved in your browser and can be cleared at any time.</p>
+            </div>
+            <span class="save-state" id="settingsSaveState"><span class="mini-dot"></span> SAVED LOCALLY</span>
+          </div>
+          <div class="settings-grid">
+            <article class="panel settings-panel">
+              <div class="panel-heading"><div><span class="panel-label">NAVIGATION PARAMETERS</span><h2>Flight settings</h2></div></div>
+              <div class="form-grid">
+                <label class="form-field"><span>Max hyperjump distance <small>LY</small></span><input id="hyperdriveInput" type="number" min="1" max="999999" step="1" /></label>
+                <label class="form-field"><span>Current galaxy</span><select id="galaxyInput"><option value="Euclid">Euclid 01</option><option value="Hilbert Dimension">Hilbert Dimension 02</option><option value="Calypso">Calypso 03</option></select></label>
+                <label class="form-field"><span>Local grid size <small>REGIONS</small></span><input id="gridSizeInput" type="number" min="8" max="64" step="1" /></label>
+                <label class="form-field"><span>Map height <small>PIXELS</small></span><input id="mapHeightInput" type="number" min="320" max="960" step="16" /></label>
+              </div>
+              <div class="settings-actions"><button class="primary-button" id="saveSettingsButton">Save and apply</button><button class="danger-button" id="clearSettingsButton">Clear settings cache</button></div>
+            </article>
+            <article class="panel design-panel">
+              <div class="panel-heading"><div><span class="panel-label">VISUAL SYSTEM</span><h2>Interface tokens</h2></div></div>
+              <div class="token-list">
+                <div class="token-row"><span class="swatch swatch-cyan"></span><div><strong>Signal cyan</strong><small>Primary controls and map grid</small></div><code>#64E8FF</code></div>
+                <div class="token-row"><span class="swatch swatch-violet"></span><div><strong>Deep-space violet</strong><small>Galaxy haze and route depth</small></div><code>#9B8BFF</code></div>
+                <div class="token-row"><span class="swatch swatch-amber"></span><div><strong>Advisory amber</strong><small>Warnings and destination focus</small></div><code>#F5A96C</code></div>
+                <div class="token-row"><span class="swatch swatch-ink"></span><div><strong>Console ink</strong><small>Panels and navigation surfaces</small></div><code>#071421</code></div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" data-view-panel="help" id="helpView" hidden>
+          <div class="view-heading">
+            <div>
+              <div class="eyebrow">FIELD MANUAL <span class="eyebrow-line"></span> LOCAL BUILD</div>
+              <h1>Read the map by its signals.</h1>
+              <p class="view-subtitle">A quick guide to the first Pilgrim Star Path Reimagined prototype.</p>
+            </div>
+          </div>
+          <div class="help-grid">
+            <article class="panel help-card"><span class="help-number">01</span><h2>Set your origin</h2><p>Enter a four-block hexadecimal address such as <code>0432:0076:0D66:0172</code>, or use three decimal coordinates separated by commas.</p></article>
+            <article class="panel help-card"><span class="help-number">02</span><h2>Choose a waypoint</h2><p>Use the destination selector or click a stored waypoint. The route telemetry and map markers update immediately.</p></article>
+            <article class="panel help-card"><span class="help-number">03</span><h2>Explore the projection</h2><p>Drag to pan and use the smooth wheel or map controls to zoom. Use Snap to User to centre either map on your origin, or toggle map nametags when you want a cleaner view.</p></article>
+            <article class="panel help-card"><span class="help-number">04</span><h2>Keep the journey</h2><p>Open Journeys to start a named flight record. Rename checkpoints or add notes below the origin status. Active journeys resume from their saved checkpoints, while completed journeys can be restored to replay their route in both map views.</p></article>
+          </div>
+          <article class="panel help-note"><div class="help-note-icon">⌁</div><div><span class="panel-label">BUILD NOTE</span><h2>Local-first, expandable later.</h2><p>Your saved settings and session state remain in this browser. The app is ready for a real destination data layer when the calculation rules have been verified.</p></div></article>
+        </section>
+      </main>
+    </div>
+
+    <dialog class="waypoint-dialog" id="waypointDialog" aria-labelledby="waypointDialogTitle">
+      <form class="waypoint-form" id="waypointForm">
+        <div class="dialog-header">
+          <div>
+            <span class="panel-label">LOCAL DIRECTORY / NEW ENTRY</span>
+            <h2 id="waypointDialogTitle">Add a waypoint</h2>
+          </div>
+          <button class="dialog-close" type="button" id="closeWaypointButton" aria-label="Close add waypoint dialog">×</button>
+        </div>
+        <p class="dialog-copy">Give this destination a name, then enter either a four-block address or three decimal coordinates.</p>
+        <div class="dialog-fields">
+          <label class="dialog-field">
+            <span>Waypoint name</span>
+            <input id="waypointNameInput" type="text" placeholder="e.g. Quiet Star Hub" autocomplete="off" maxlength="48" />
+          </label>
+          <label class="dialog-field">
+            <span>Coordinate address</span>
+            <input id="waypointCoordinateInput" type="text" placeholder="048A:003C:0D5C:0172 or 1162, 60, 3420" autocomplete="off" spellcheck="false" />
+          </label>
+        </div>
+        <div class="dialog-hint"><span class="mini-dot"></span><span>Example hex format: <code>0432:0076:0D66:0172</code></span></div>
+        <div class="dialog-error" id="waypointError" role="alert" aria-live="polite"></div>
+        <div class="dialog-actions">
+          <button class="ghost-button" type="button" id="cancelWaypointButton">Cancel</button>
+          <button class="primary-button" type="submit">Save waypoint</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="waypoint-dialog" id="journeyDialog" aria-labelledby="journeyDialogTitle">
+      <form class="waypoint-form" id="journeyForm">
+        <div class="dialog-header">
+          <div>
+            <span class="panel-label">FLIGHT RECORD / NEW ARCHIVE</span>
+            <h2 id="journeyDialogTitle">Start a new journey</h2>
+          </div>
+          <button class="dialog-close" type="button" id="closeJourneyButton" aria-label="Close new journey dialog">×</button>
+        </div>
+        <p class="dialog-copy">Give this flight a name. Every later origin update will be saved as a checkpoint until you complete the journey.</p>
+        <div class="dialog-fields">
+          <label class="dialog-field">
+            <span>Journey name</span>
+            <input id="journeyNameInput" type="text" placeholder="e.g. The Atlas Run" autocomplete="off" maxlength="56" />
+          </label>
+        </div>
+        <div class="dialog-hint"><span class="mini-dot"></span><span>Records stay local to this browser and can be replayed in the 3D map.</span></div>
+        <div class="dialog-error" id="journeyError" role="alert" aria-live="polite"></div>
+        <div class="dialog-actions">
+          <button class="ghost-button" type="button" id="cancelJourneyButton">Cancel</button>
+          <button class="primary-button" type="submit">Start journey</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="waypoint-dialog" id="checkpointRenameDialog" aria-labelledby="checkpointRenameDialogTitle">
+      <form class="waypoint-form" id="checkpointRenameForm">
+        <div class="dialog-header">
+          <div>
+            <span class="panel-label">FLIGHT RECORD / CHECKPOINT EDIT</span>
+            <h2 id="checkpointRenameDialogTitle">Rename checkpoint</h2>
+          </div>
+          <button class="dialog-close" type="button" id="closeCheckpointRenameButton" aria-label="Close rename checkpoint dialog">×</button>
+        </div>
+        <p class="dialog-copy">Give this saved waypoint a name you will recognise when you return to this journey.</p>
+        <div class="dialog-fields">
+          <label class="dialog-field">
+            <span>Checkpoint name</span>
+            <input id="checkpointNameInput" type="text" placeholder="e.g. First jump marker" autocomplete="off" maxlength="48" />
+          </label>
+        </div>
+        <div class="dialog-hint"><span class="mini-dot"></span><span>The new name is saved with this journey and appears on the route record.</span></div>
+        <div class="dialog-error" id="checkpointRenameError" role="alert" aria-live="polite"></div>
+        <div class="dialog-actions">
+          <button class="ghost-button" type="button" id="cancelCheckpointRenameButton">Cancel</button>
+          <button class="primary-button" type="submit">Save name</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="calculations.js?v=35"></script>
+    <script src="map3d.js?v=35"></script>
+    <script src="app.js?v=35"></script>
+  </body>
+</html>
