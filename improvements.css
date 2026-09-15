@@ -44,8 +44,15 @@ textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); 
 .panel-heading-actions { flex-wrap: wrap; }
 .panel-state { white-space: normal; }
 .target-address-block strong { overflow-wrap: anywhere; }
-.compass-footer { flex-wrap: wrap; gap: 5px; }
-.compass-footer span:last-child { max-width: 110px; }
+/* Keep the compass in its own row so it cannot cover route statistics. */
+.advisory-main { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 18px; }
+.advisory-details { min-width: 0; overflow-wrap: anywhere; }
+.compass-widget { grid-column: 1 / -1; width: 100%; max-width: 360px; min-width: 0; margin: 0; justify-self: center; transform: none; }
+.compass-footer { flex-direction: column; align-items: center; gap: 5px; text-align: center; line-height: 1.5; }
+.compass-footer span:last-child { max-width: 100%; white-space: normal; overflow-wrap: anywhere; overflow: visible; }
+/* Readouts wrap independently instead of colliding on narrow maps. */
+.map-overlay-bottom { flex-wrap: wrap; gap: 6px 18px; line-height: 1.5; }
+.map-overlay-bottom > span { flex: 1 1 240px; min-width: 0; overflow-wrap: anywhere; }
 .input-help { color: var(--text-soft); font-size: 12px; line-height: 1.6; margin: 9px 0; }
 .input-help code { color: var(--cyan); font-size: 12px; overflow-wrap: anywhere; }
 .inline-error { color: var(--danger); font-size: 13px; line-height: 1.5; margin: 0; }
