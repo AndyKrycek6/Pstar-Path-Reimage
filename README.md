@@ -1,77 +1,85 @@
-# Pilgrim Star Path Reimagined
+# Pilgrim Star Path — v37
 
-A static, local-first redesign prototype for Pilgrim Star Path.
+A local-first navigation console with 2D/3D maps, saved waypoints and a journey archive. This release fixes the v35 review findings and adds backup/restore and a more compact interface.
 
-## Run it
+## Open the app
 
-The app has no build step and no external dependencies. Open `index.html` directly in a browser, or serve the folder locally:
+Open `index.html` in a browser. Keep the accompanying JavaScript and CSS files in the same folder. There is no build step, account or runtime dependency.
 
-```bash
-cd pilgrim-star-path-reimagined
-python3 -m http.server 8080
-```
+Alternatively, serve this folder using your usual local web server. Keep its address and port unchanged between versions to reuse browser storage.
 
-Then open <http://localhost:8080>.
+## Upgrading from v35 without losing records
 
-## What is included
+Records live in browser storage, not in these files. Copying the app folder does not copy saved journeys.
 
-- Dark deep-space navigation-console UI
-- SVG star map with a generated starfield and grid shared by galaxy and local views
-- Full 0–4096 galactic frame with the galactic centre fixed at the map centre
-- Local Mode target-centred radar with an N×N region scale from Settings
-- Manual Local Mode switching from the map footer button
-- Full-range mouse/touch drag to pan and wheel/buttons to zoom around the cursor
-- Preserved 2D map aspect ratio with cursor-correct zooming
-- One-click collapse for the complete top summary group
-- Drag handles for persistent top-panel ordering
-- Destination Profile now occupies the former Route Telemetry slot; Route Telemetry sits in the map-side stack
-- Dependency-free Canvas 3D orbit map with 2D-consistent grab orbiting, Shift-drag pan and depth zoom
-- Zoom-out limits on both map modes stop at the default 100% view
-- Smooth, fine-grained zooming on both map modes with cursor-aware 2D focus
-- Snap-to-user control recentres either map on the saved origin
-- Persistent map nametag toggle shared by the 2D and 3D views
-- More strongly outlined starship compass pointer with Galactic Centre bearing
-- Initial 3D top view uses the negative-Y side of the screen frame (+X right, +Z down, navigation Y up), with full above/below-plane orbiting
-- Named journey archive with local checkpoint recording and completion state
-- Checkpoint names can be edited after they are saved, and local notes can be attached to any checkpoint
-- Active journeys resume from their saved checkpoints after returning to the app; completed journeys can be restored to replay their route in 3D
-- Reset Session clears in-progress journey checkpoints while keeping completed journey archives available for restore
-- 2D SVG and 3D Canvas journey replay trails for saved routes
-- Saved checkpoint waypoints are listed beneath the origin status
-- Last valid origin coordinates are cached separately and restored at startup
-- Fresh or reset sessions start with no origin and no selected destination; the old demonstration coordinates are never injected
-- Existing custom waypoints and journey checkpoints remain compatible with later builds and are retained in localStorage
-- Origin shows a slowly pulsing orange Awaiting Entry state, while Flight Guidance shows orange pulsing Waiting until a destination is selected
-- A selected destination shows a static blue Destination Lock; clearing the selection also clears the destination profile and route values
-- 2D-first startup with an in-session 2D / 3D map switch and manual local-map switching
-- 360° radial compass with Galactic Centre North as zero and true North highlighted
-- Approach telemetry graph showing the signed target angle from the galactic plane, with the plane at 0° and above/below target direction
-- User coordinate input in hexadecimal address or decimal `x, y, z` form
-- Separated calculation engine in `calculations.js`
-- Three default community waypoints: Galactic Hub Project, Amino Hub and Alliance of Galactic Travellers
-- Pilgrim Star is a highlighted fixed reference in the destination profile and remains rendered on both 2D and 3D views without being a selectable stored waypoint
-- Stored waypoints, including custom additions, can be removed from the waypoint list or directory; removals are saved in localStorage
-- Deleted waypoints can be restored from the Stored Waypoints panel, and Reset Session restores the built-in and deleted custom waypoint set
-- When a selected destination shares Pilgrim Star's coordinates, its marker remains at the true position but fades behind the selected destination marker
-- Homepage support link points to Pahefu's original Pilgrim Star Path and invites donations to the original creator
-- Smaller outline-only ship pointer for the 360° route compass
-- Collapsible orientation guide using the original centre-facing instruction
-- Add waypoint form for custom names and coordinates
-- Add Waypoint entry point directly below the homepage origin controls
-- Black-hole ring visualisation
-- Local settings saved with `localStorage`
-- Destination directory, help view and activity log
-- Journeys view with New journey, Resume journey, Replay route and Complete journey controls
-- No external APIs or network calls
+- **Web server:** replace app files at the same web address, and use the same browser/profile. v36 reads the existing v35 storage keys.
+- **Opening index.html directly:** browsers can isolate storage by file path. Keep a separate copy of the old app files, then put the v36 files into the **original app folder**, replacing the old files so the path to `index.html` stays the same. Open it in the same browser/profile. This is the safest available upgrade route from v35, which has no backup export button.
+- Once your records appear, use **Config → Export backup**. Keep the JSON file. You can then move to another folder/browser and use **Import backup**.
+- An empty journey list in a new folder does not mean the records at the original browser/path were deleted. Return to the original location before clearing browser data.
 
-## Project structure
+The supplied v35 source folder was left unchanged while preparing this release.
 
-```text
-index.html       interface and accessible markup
-styles.css       visual system and responsive layout
-calculations.js  isolated coordinate and route calculations
-map3d.js         isolated perspective Canvas renderer and orbit controls
-app.js           UI state, SVG/Canvas rendering and browser interactions
-```
+## v37 updates
 
-The built-in community waypoint addresses are static Euclid references sourced from public community/portal listings; they do not require an external API. The calculation scale is intentionally labelled as a mock build. The centre-angle follows the original “look at centre, turn toward destination” convention, while the distance scale remains mock. Replace the constants and formulas in `calculations.js` once verified Pilgrim Star Path examples are available.
+- Removed the examples below the origin entry.
+- No destination shows a pulsing **NO LOCK** advisory (respecting reduced-motion settings).
+- Empty input shows **Awaiting hex input**; invalid input shows **Invalid hex input** in red with a red orb.
+- Enlarged saved checkpoint names, addresses, notes and status text.
+- Click a saved note or its Edit button to open a larger editor. Save, cancel and clear work for individual checkpoints, including archived notes.
+
+## Earlier improvements
+
+### Recorded history and saved data
+
+- Completing a journey keeps actual checkpoints; it never adds an unvisited destination. Starting another journey closes the previous record at its last recorded stop.
+- The example origin address and custom waypoints at Pilgrim Star's address survive reloads.
+- Different system addresses in one region are separate checkpoints; repeating the same address does not add a duplicate.
+- Resuming an active journey restores its latest checkpoint. Replay/resume falls back to 2D if 3D is unavailable.
+- Reset Session requests confirmation with unfinished journey/checkpoint counts. Completed journeys are retained and deleted waypoints restored.
+
+### Coordinates and guidance
+
+- New input accepts whole-number signal-booster coordinates: X/Z from 0–4095, Y from 0–255. Negative, fractional or out-of-range values receive an inline explanation instead of being silently changed. Existing finite legacy coordinates remain in archives.
+- Distance estimates use **400 LY per region**, matching the original [Pilgrim Star Path calculation source](https://github.com/pahefu/pilgrimstarpath/blob/master/js/gdl.js): region distance is multiplied by 100, and displayed distance by another four. A 3–4–5 region displacement estimates 2,000 LY.
+- These are region estimates, not precise distances between stars. Jump counts assume full use of the configured range and do not find intermediate star systems. No live in-game calibration was performed.
+- Matching addresses show **Arrived — 0 jumps**. Different addresses in the same region show **Same region**, with no arbitrary horizontal compass direction. The fourth block identifies the system; region coordinates alone cannot prove arrival there.
+- The reference ring is illustrative; it does not predict black-hole exits.
+- Built-in community destinations remain Euclid references. Changing the galaxy label does not relocate those communities.
+
+### Interface
+
+- Three-step origin → destination → guidance flow. Origin examples have been removed.
+- Expandable checkpoint notes, destination details and vertical telemetry.
+- At widths up to 920px, detailed guidance moves below the map; a concise route summary stays above it.
+- Larger essential text, controls and focus indicators, with reduced-motion support.
+- Traveller notes and backup controls replace development-facing panels.
+
+### Backups
+
+**Config → Export backup** downloads the current tab's journeys, notes, custom/deleted waypoints, origin, destination and settings—even if a browser save failed.
+
+**Import backup** validates the file and previews its contents. Nothing changes until **Replace with backup** is selected. Cancel preserves current data. Restore replaces rather than merges records; export first to keep both sets. Import limit: 20 MB.
+
+Failed storage writes show a persistent warning. **Save again** retries the entire current state. If a multi-key write fails, the app attempts to restore previous values. If storage cannot be recovered, keep the backup and export the current tab before closing.
+
+## Validation
+
+21 automated checks passed using Node and a simulated DOM: coordinate validation, distance fixtures, reload persistence, checkpoint recording, arrival states, responsive document order, reset cancellation, backup preview/cancel/restore, malformed files, failed writes, rollback/retry, and export of unsaved state.
+
+The available browser security policy blocked local previews. No screenshot-based desktop/mobile check or live 3D rendering check was completed. The existing Canvas renderer was not changed.
+
+Developer tests: `npm install`, then `npm test`. Installation is optional and only needed to run tests; the app works directly from `index.html`.
+
+## Files
+
+- `index.html` — interface
+- `styles.css`, `improvements.css` — base styling and v36 layout/accessibility
+- `calculations.js` — coordinate validation and route estimates
+- `map3d.js` — existing Canvas renderer
+- `backup.js` — backup validation and storage transactions
+- `app.js` — state and interactions
+- `tests/regression.test.cjs` — regression checks
+
+Original project: [Pahefu's Pilgrim Star Path](https://pahefu.github.io/pilgrimstarpath/).
+
+

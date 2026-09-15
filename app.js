@@ -70,6 +70,9 @@
   let mapZoomFrame = 0;
   let noteTarget = null;
   let renameTarget = null;
+  let pendingBackup = null;
+  let storageError = false;
+  let modalNoteTarget = null;
 
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
@@ -79,6 +82,10 @@
 
   function init() {
     cacheElements();
+    bindBackupActions();
+    bindNoteDialog();
+    arrangeMobilePanels();
+    window.matchMedia("(max-width: 920px)").addEventListener("change", arrangeMobilePanels);
     applyTopPanelOrder();
     map3d = window.Pilgrim3D ? window.Pilgrim3D.create(els.starMap3d, { onZoom: handle3DZoom }) : null;
     if (!map3d?.supported) {
@@ -138,7 +145,11 @@
   function bindActions() {
     els.updateLocationButton.addEventListener("click", updateLocation);
     els.locationInput.addEventListener("keydown", (event) => { if (event.key === "Enter") updateLocation(); });
-    els.locationInput.addEventListener("input", () => { els.locationParseStatus.textContent = "EDITING"; });
+    els.locationInput.addEventListener("input", () => {
+      els.locationParseStatus.textContent = "EDITING";
+      document.getElementById("locationError").textContent = "";
+      syncHexInputStatus();
+    });
     els.copyLocationButton.addEventListener("click", copyLocation);
     els.drawRingButton.addEventListener("click", toggleRing);
     els.homeAddWaypointButton.addEventListener("click", openWaypointDialog);
@@ -202,6 +213,20 @@
       const title = panel.dataset.topPanelLabel;
       if (label && title) label.textContent = String(index + 1).padStart(2, "0") + " / " + title;
     });
+  }
+
+  function arrangeMobilePanels() {
+    const compact = window.matchMedia("(max-width: 920px)").matches;
+    const guidance = document.getElementById("advisoryPanel");
+    const mapGrid = document.querySelector(".main-grid");
+    const belowMap = document.getElementById("belowMapDetails");
+    if (compact) belowMap.appendChild(guidance);
+    else {
+      els.summaryGrid.appendChild(guidance);
+      applyTopPanelOrder();
+    }
+    document.getElementById("mapView").classList.toggle("compact-layout", compact);
+    if (mapGrid && is3DMap()) map3d.resize();
   }
 
   function bindTopPanelDrag() {
@@ -315,6 +340,7 @@
       ? math.calculateRoute(state.location.coords, mapTarget.coords, state.settings, GALAXY_CENTRE)
       : null;
     state.currentRoute = route;
+    renderQuickStart(route, target);
     applyMapHeight();
     syncNametagToggle();
     syncSnapUserButton();
@@ -340,25 +366,28 @@
     els.destinationDistanceValue.textContent = hasRoute ? math.formatNumber(route.destinationDistance, 3) : "—";
     els.jumpsValue.textContent = hasRoute ? route.estimatedJumps : "—";
     els.jumpRangeValue.textContent = `${math.formatNumber(state.settings.hyperdrive, 0)} LY`;
-    els.degreesValue.textContent = hasRoute ? route.angle.toFixed(2) : "—";
-    els.directionValue.textContent = hasRoute ? route.direction.toUpperCase() : "—";
+    els.degreesValue.textContent = hasRoute && route.hasPlanarBearing ? route.angle.toFixed(2) : "—";
+    els.directionValue.textContent = hasRoute && route.hasPlanarBearing ? route.direction.toUpperCase() : "—";
     els.warningText.textContent = !hasDestination
       ? "Select a destination to calculate route guidance."
       : !state.location
         ? "Enter origin coordinates to calculate route guidance."
+        : route.sameRegion
+          ? arrivalText(target)
         : route.regionHeight === 0
           ? "No vertical region offset detected on this route"
           : `You are ${route.regionHeight} region(s) ${route.heightDirection} ${target.name}`;
     els.warningStrip.classList.toggle("is-clear", hasRoute && route.regionHeight === 0);
-    els.advisoryState.textContent = hasDestination ? "DESTINATION LOCK" : "WAITING";
+    els.advisoryState.textContent = route?.sameRegion ? (atDestination(target) ? "ARRIVED" : "SAME REGION") : hasDestination ? "DESTINATION LOCK" : "NO LOCK";
     els.advisoryState.classList.toggle("state-warn", false);
     els.advisoryState.classList.toggle("state-lock", hasDestination);
     els.advisoryState.classList.toggle("state-waiting", !hasDestination);
     els.advisoryState.classList.toggle("state-live", false);
-    els.routeState.textContent = hasRoute ? "CALCULATED" : "WAITING";
+    els.routeState.textContent = route?.sameRegion ? "0 REGION JUMPS" : hasRoute ? "ESTIMATE" : "WAITING";
     els.routeState.classList.toggle("state-live", hasRoute);
     els.routeState.classList.toggle("state-waiting", !hasRoute);
-    els.locationInput.value = state.location?.address || "";
+    if (document.activeElement !== els.locationInput) els.locationInput.value = state.location?.address || "";
+    syncHexInputStatus();
     els.locationParseStatus.textContent = state.location ? "INPUT SYNCED" : "NO ORIGIN SAVED";
     els.locationState.textContent = state.location ? "READY" : "AWAITING ENTRY";
     els.locationState.classList.toggle("state-live", Boolean(state.location));
@@ -374,20 +403,177 @@
     renderAngleTelemetry(route, target);
   }
 
+  function atDestination(target) {
+    return Boolean(target && state.location && state.location.address.toUpperCase() === target.address.toUpperCase());
+  }
+
+  function syncHexInputStatus() {
+    const value = els.locationInput.value.trim();
+    const indicator = document.getElementById("hexInputIndicator");
+    let status = "empty";
+    let label = "Awaiting hex input";
+    if (value) {
+      try {
+        const parsed = math.parseLocation(value);
+        status = "valid";
+        label = parsed.format === "hex" ? "Hex address accepted" : "Decimal coordinates accepted";
+      } catch (_) {
+        status = "invalid";
+        label = "Invalid hex input";
+      }
+    }
+    indicator.classList.toggle("is-empty", status === "empty");
+    indicator.classList.toggle("is-valid", status === "valid");
+    indicator.classList.toggle("is-invalid", status === "invalid");
+    document.getElementById("hexInputStatus").textContent = label;
+    if (status === "invalid") els.locationInput.setAttribute("aria-invalid", "true");
+    else els.locationInput.removeAttribute("aria-invalid");
+  }
+
+  function arrivalText(target) {
+    return atDestination(target)
+      ? "Arrived — your address matches the destination. 0 jumps remaining."
+      : "Same region — 0 region jumps. Check the destination system address in-game.";
+  }
+
+  function renderQuickStart(route, target) {
+    const originStep = document.getElementById("originStep");
+    const targetStep = document.getElementById("targetStep");
+    originStep.textContent = state.location ? "1 · Origin ready" : "1 · Enter your location";
+    targetStep.textContent = target ? "2 · Destination selected" : "2 · Choose destination";
+    originStep.classList.toggle("is-complete", Boolean(state.location));
+    targetStep.classList.toggle("is-complete", Boolean(target));
+    document.getElementById("guidanceStep").textContent = route ? "3 · Follow guidance below" : "3 · Follow guidance";
+    document.getElementById("compactRouteSummary").textContent = route?.sameRegion
+      ? arrivalText(target)
+      : route ? `≈ ${route.estimatedJumps} jumps · ${math.formatNumber(route.destinationDistance, 0)} LY · ${orientationInstruction(route)}`
+      : state.location ? "Choose a destination to see your route." : "Enter your signal-booster address to begin.";
+  }
+
+  function backupSnapshot() {
+    const selected = state.destinations[state.selectedDestinationIndex];
+    const present = new Set(state.destinations.filter(d => !d.userCreated).map(d => d.address));
+    return {
+      settings: { ...state.settings },
+      session: { location: state.location, selectedDestinationIndex: state.selectedDestinationIndex, selectedDestinationAddress: selected?.address || "" },
+      waypoints: {
+        custom: state.destinations.filter(d => d.userCreated).map(snapshotWaypoint),
+        deletedCustom: state.deletedWaypoints.filter(d => !state.destinations.some(p => p.address === d.address)).map(snapshotWaypoint),
+        removedCommunity: COMMUNITY_DESTINATIONS.filter(d => !present.has(d.address)).map(d => d.address),
+      },
+      journeys: { journeys: state.journeys, activeJourneyId: state.activeJourneyId, viewingJourneyId: state.viewingJourneyId },
+    };
+  }
+
+  function backupEntries(data) {
+    return [
+      [STORAGE_KEY, JSON.stringify(data.settings)],
+      [SESSION_KEY, JSON.stringify(data.session)],
+      [WAYPOINT_KEY, JSON.stringify(data.waypoints)],
+      [JOURNEY_KEY, JSON.stringify(data.journeys)],
+      [ORIGIN_CACHE_KEY, data.session.location ? JSON.stringify(data.session.location) : null],
+    ];
+  }
+
+  function persistData() {
+    let result;
+    try { result = window.PilgrimBackup.commit(localStorage, backupEntries(backupSnapshot())); }
+    catch (error) { result = { ok: false, error }; }
+    storageError = !result.ok;
+    const banner = document.getElementById("storageWarning");
+    banner.hidden = !storageError;
+    if (storageError) banner.textContent = "Changes are only in this tab: browser storage is unavailable or full. Export a backup in Config before closing. Try saving again after freeing space.";
+    if (els.settingsSaveState) els.settingsSaveState.textContent = storageError ? "NOT SAVED · EXPORT A BACKUP" : "SAVED LOCALLY";
+    return result.ok;
+  }
+
+  function bindBackupActions() {
+    const input = document.getElementById("backupFileInput");
+    const dialog = document.getElementById("backupImportDialog");
+    const status = document.getElementById("backupStatus");
+    document.getElementById("originStep").addEventListener("click", () => {
+      state.settings.topPanelsCollapsed = false; syncTopPanels(); els.locationInput.focus();
+    });
+    document.getElementById("targetStep").addEventListener("click", () => {
+      state.settings.topPanelsCollapsed = false; syncTopPanels(); els.destinationSelect.focus();
+    });
+    document.getElementById("exportBackupButton").addEventListener("click", () => {
+      try {
+        const json = window.PilgrimBackup.encode(backupSnapshot());
+        const url = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+        const link = document.createElement("a");
+        link.href = url; link.download = `pilgrim-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(link); link.click(); link.remove();
+        window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+        status.textContent = "Backup download started. Keep this file somewhere safe.";
+      } catch (error) { status.textContent = error.message; }
+    });
+    document.getElementById("importBackupButton").addEventListener("click", () => input.click());
+    input.addEventListener("change", async () => {
+      const file = input.files[0];
+      input.value = "";
+      pendingBackup = null;
+      if (!file) return;
+      try {
+        if (file.size > window.PilgrimBackup.MAX_BYTES) throw new Error("Choose a backup smaller than 20 MB.");
+        pendingBackup = window.PilgrimBackup.parse(await file.text());
+        const journeys = pendingBackup.journeys.journeys;
+        const checkpoints = journeys.reduce((count, journey) => count + journey.points.length, 0);
+        document.getElementById("backupPreview").textContent = `${journeys.length} journey(s) · ${checkpoints} checkpoint(s) · ${pendingBackup.waypoints.custom.length} custom waypoint(s). Origin ${pendingBackup.session.location ? "included" : "empty"}. Settings and deleted waypoints are included. This replaces ${state.journeys.length} current journey(s) and your current saved settings and waypoints.`;
+        dialog.showModal();
+      } catch (error) { status.textContent = error.message; pendingBackup = null; }
+    });
+    document.getElementById("cancelBackupButton").addEventListener("click", () => dialog.close());
+    dialog.addEventListener("close", () => { pendingBackup = null; });
+    document.getElementById("confirmBackupButton").addEventListener("click", () => {
+      if (!pendingBackup) return;
+      let result;
+      try { result = window.PilgrimBackup.commit(localStorage, backupEntries(pendingBackup)); }
+      catch (error) { result = { ok: false, error }; }
+      if (!result.ok) {
+        dialog.close();
+        status.textContent = result.rollbackFailed
+          ? "Restore failed and browser storage could not be fully recovered. Keep your backup file and export the current tab before closing."
+          : "Restore could not be saved. Existing data was kept. Check browser storage space and try again.";
+        return;
+      }
+      const waypoints = readWaypointStore();
+      const journeys = readJourneyStore();
+      state.destinations = [...COMMUNITY_DESTINATIONS.filter(d => !waypoints.removedAddresses.includes(d.address)).map(cloneDestination), ...waypoints.custom];
+      state.deletedWaypoints = waypoints.deletedCustom;
+      Object.assign(state, journeys, readSession(state.destinations));
+      state.settings = readSettings();
+      state.ringVisible = false;
+      noteTarget = null; renameTarget = null;
+      storageError = false;
+      document.getElementById("storageWarning").hidden = true;
+      resetViewport(); arrangeMobilePanels(); applyTopPanelOrder(); syncSettingsForm(); renderAll();
+      els.settingsSaveState.textContent = "SAVED LOCALLY";
+      dialog.close();
+      status.textContent = "Backup restored. Your journeys, waypoints and settings are ready.";
+    });
+    document.getElementById("retrySaveButton").addEventListener("click", () => {
+      status.textContent = persistData() ? "All current data has been saved in this browser." : "Still unable to save. Export a backup before closing.";
+    });
+  }
+
   function orientationInstruction(route) {
+    if (route.sameRegion) return "You are in the destination region. Check the system address in-game; no region bearing is needed.";
+    if (!route.hasPlanarBearing) return "The target is directly above or below your region. Use the vertical guidance; no horizontal turn is needed.";
     return route.angle === 0
       ? "Looking at the center; the destination is straight ahead."
       : `Looking at the center, turn ${route.angle.toFixed(2)} degrees to your ${route.direction}.`;
   }
 
   function renderCompass(route, target) {
-    if (!route) {
+    els.shipPointer.hidden = Boolean(route && !route.hasPlanarBearing);
+    if (!route || !route.hasPlanarBearing) {
       els.compassBearing.textContent = "—";
       els.compassCardinal.textContent = "GC NORTH · N —";
-      els.compassTargetName.textContent = target ? `TO ${target.name.toUpperCase()}` : "NO DESTINATION LOCK";
+      els.compassTargetName.textContent = route?.sameRegion ? "DESTINATION REGION" : route ? "VERTICAL ROUTE" : target ? `TO ${target.name.toUpperCase()}` : "NO DESTINATION LOCK";
       els.shipPointer.style.transform = "translate(-50%, -50%) rotate(0deg)";
       els.trueNorthMarker.style.transform = "rotate(0deg)";
-      els.compassDial.setAttribute("aria-label", target
+      els.compassDial.setAttribute("aria-label", route ? "No horizontal route bearing is needed." : target
         ? `Route compass waiting for origin coordinates to point toward ${target.name}.`
         : "Route compass waiting for a destination selection.");
       if (!els.compassTicks.childElementCount) {
@@ -512,6 +698,10 @@
       ? "Select a destination to calculate guidance."
       : !state.location
         ? "Enter origin coordinates to calculate guidance."
+      : route.sameRegion
+        ? arrivalText(target)
+      : !route.hasPlanarBearing
+        ? "The destination is directly above or below you. Follow the vertical guidance."
       : route.angle === 0
         ? "The destination is aligned with your current centre bearing."
         : `Looking at the centre, turn ${route.angle.toFixed(2)}° to your ${route.direction}.`;
@@ -944,6 +1134,8 @@
   function updateLocation() {
     try {
       const parsed = math.parseLocation(els.locationInput.value);
+      document.getElementById("locationError").textContent = "";
+      els.locationInput.removeAttribute("aria-invalid");
       state.location = { address: parsed.address, coords: { x: parsed.x, y: parsed.y, z: parsed.z }, planet: parsed.planet };
       resetViewport();
       recordJourneyLocation(parsed);
@@ -953,6 +1145,9 @@
       renderAll();
     } catch (error) {
       els.locationParseStatus.textContent = "CHECK INPUT";
+      syncHexInputStatus();
+      document.getElementById("locationError").textContent = error.message;
+      els.locationInput.setAttribute("aria-invalid", "true");
       showToast(error.message, true);
     }
   }
@@ -979,13 +1174,13 @@
     syncRingButton();
     logActivity(state.ringVisible ? "Black-hole ring visualised" : "Black-hole ring hidden");
     renderAll();
-    showToast(state.ringVisible ? "Black-hole ring displayed on the map." : "Black-hole ring hidden.");
+    showToast(state.ringVisible ? "Illustrative reference ring shown. It does not predict a black-hole exit." : "Reference ring hidden.");
   }
 
   function syncRingButton() {
     els.drawRingButton.innerHTML = state.ringVisible
-      ? `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="m18 6 2-2M6 18l-2 2"/></svg> Hide B.Hole ring`
-      : `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="m18 6 2-2M6 18l-2 2"/></svg> Draw B.Hole ring`;
+      ? `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="m18 6 2-2M6 18l-2 2"/></svg> Hide reference ring`
+      : `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="m18 6 2-2M6 18l-2 2"/></svg> Show reference ring`;
   }
 
   function selectDestination(index) {
@@ -1197,6 +1392,8 @@
       .filter((journey) => journey.status !== "completed")
       .reduce((total, journey) => total + journey.points.length, 0);
     const archivedJourneys = state.journeys.filter((journey) => journey.status === "completed");
+    const unfinished = state.journeys.length - archivedJourneys.length;
+    if (!window.confirm(`Reset this session? This removes ${unfinished} unfinished journey(s), including ${activeJourneyCheckpoints} checkpoint(s) and their notes. Completed journeys are kept. Deleted waypoints are restored. Export a backup in Config first if you want to keep unfinished records.`)) return;
     state.location = null;
     state.selectedDestinationIndex = null;
     state.viewingJourneyId = null;
@@ -1425,19 +1622,19 @@
       || getActiveJourney()
       || (state.journeys.length ? state.journeys[state.journeys.length - 1] : null);
     if (!journey) return;
-    if (!map3d?.supported) {
-      showToast("3D canvas is unavailable in this browser.", true);
-      return;
-    }
     state.viewingJourneyId = journey.id;
-    if (journey.status === "active") state.activeJourneyId = journey.id;
+    if (journey.status === "active") {
+      state.activeJourneyId = journey.id;
+      const latest = journey.points[journey.points.length - 1];
+      if (latest) state.location = normalizeSavedLocation(latest);
+    }
     if (journey.destination) {
       const destinationIndex = state.destinations.findIndex((destination) =>
         destination.address === journey.destination.address
         || sameCoords(destination.coords, journey.destination.coords));
       state.selectedDestinationIndex = destinationIndex >= 0 ? destinationIndex : null;
     } else state.selectedDestinationIndex = null;
-    state.settings.mapView = "3d";
+    state.settings.mapView = map3d?.supported ? "3d" : "2d";
     saveJourneyStore();
     saveSession();
     writeSettings();
@@ -1445,7 +1642,7 @@
     switchView("map");
     renderAll();
     showToast(journey.status === "completed"
-      ? `${journey.name} route restored on the 3D map.`
+      ? `${journey.name} route restored on the ${state.settings.mapView.toUpperCase()} map.`
       : `${journey.name} resumed from checkpoint ${journey.points.length}.`);
   }
 
@@ -1459,7 +1656,7 @@
       notes: "",
     };
     const lastPoint = journey.points[journey.points.length - 1];
-    const addedPoint = !lastPoint || !sameCoords(lastPoint.coords, point.coords);
+    const addedPoint = !lastPoint || lastPoint.address !== point.address || !sameCoords(lastPoint.coords, point.coords);
     if (addedPoint) {
       journey.points.push(point);
       noteTarget = { journeyId: journey.id, pointIndex: journey.points.length - 1 };
@@ -1475,15 +1672,6 @@
     const journey = getActiveJourney();
     if (!journey || !journey.points.length) return null;
     const target = state.destinations[state.selectedDestinationIndex];
-    if (target && !sameCoords(journey.points[journey.points.length - 1].coords, target.coords)) {
-      journey.points.push({
-        coords: { ...target.coords },
-        address: target.address,
-        label: `DESTINATION · ${target.name}`,
-        timestamp: new Date().toISOString(),
-        notes: "",
-      });
-    }
     journey.destination = snapshotDestination(target);
     journey.status = "completed";
     journey.completedAt = new Date().toISOString();
@@ -1563,7 +1751,7 @@
             <div class="origin-journey-point-copy">
               <strong>${escapeHtml(point.label || "CHECKPOINT")}</strong>
               <small>${escapeHtml(point.address || `x:${point.coords.x} · y:${point.coords.y} · z:${point.coords.z}`)}</small>
-              ${point.notes ? `<span class="origin-journey-point-note">NOTE · ${escapeHtml(point.notes)}</span>` : ""}
+              ${point.notes ? `<button class="origin-journey-point-note note-preview-button" type="button" data-note-journey="${escapeHtml(journey.id)}" data-note-point="${index}" aria-label="Read or edit note for ${escapeHtml(point.label || "checkpoint")}">NOTE · ${escapeHtml(point.notes)}</button>` : ""}
             </div>
             <div class="origin-checkpoint-actions">
               <button class="origin-note-trigger" type="button" data-note-journey="${escapeHtml(journey.id)}" data-note-point="${index}" aria-label="${point.notes ? "Edit" : "Add"} note for ${escapeHtml(point.label || "checkpoint")}">${point.notes ? "EDIT" : "+ NOTE"}</button>
@@ -1611,12 +1799,32 @@
     const journey = getJourney(journeyId);
     const point = journey?.points?.[pointIndex];
     if (!journey || !point) return;
-    noteTarget = { journeyId: journey.id, pointIndex };
-    els.checkpointNoteInput.disabled = false;
-    els.saveCheckpointNoteButton.disabled = false;
-    els.checkpointNoteInput.value = point.notes || "";
-    els.checkpointNoteStatus.textContent = `${point.label || `CHECKPOINT ${String(pointIndex + 1).padStart(2, "0")}`} · EDITING`;
-    els.checkpointNoteInput.focus();
+    modalNoteTarget = { journeyId: journey.id, pointIndex };
+    document.getElementById("checkpointNoteContext").textContent = `${journey.name} · ${point.label || "Checkpoint"} · ${point.address || ""}`;
+    document.getElementById("checkpointNoteEditor").value = point.notes || "";
+    document.getElementById("checkpointNoteDialog").showModal();
+    document.getElementById("checkpointNoteEditor").focus();
+  }
+
+  function bindNoteDialog() {
+    const dialog = document.getElementById("checkpointNoteDialog");
+    const close = () => dialog.close();
+    document.getElementById("closeNoteDialogButton").addEventListener("click", close);
+    document.getElementById("cancelNoteDialogButton").addEventListener("click", close);
+    dialog.addEventListener("close", () => { modalNoteTarget = null; });
+    document.getElementById("checkpointNoteForm").addEventListener("submit", (event) => {
+      event.preventDefault();
+      const journey = getJourney(modalNoteTarget?.journeyId);
+      const point = journey?.points?.[modalNoteTarget?.pointIndex];
+      if (!point) { close(); return; }
+      point.notes = document.getElementById("checkpointNoteEditor").value.trim().slice(0, 240);
+      journey.updatedAt = new Date().toISOString();
+      if (noteTarget?.journeyId === journey.id && noteTarget.pointIndex === modalNoteTarget.pointIndex) els.checkpointNoteInput.value = point.notes;
+      saveJourneyStore();
+      close();
+      renderAll();
+      showToast(point.notes ? "Checkpoint note saved." : "Checkpoint note cleared.");
+    });
   }
 
   function openCheckpointRename(journeyId, pointIndex) {
@@ -1721,10 +1929,13 @@
       ? `${focusPoints.length} checkpoint${focusPoints.length === 1 ? "" : "s"} · ${focus.status === "completed" ? "restore the trail in 3D" : "resume from the latest checkpoint"}`
       : "Update origin to log the first checkpoint.";
     els.activeJourneyPoints.innerHTML = focusPoints.length
-      ? focusPoints.map((point, index) => `<div class="journey-point"><i>${String(index + 1).padStart(2, "0")}</i><div><strong>${escapeHtml(point.label)}</strong><small>${escapeHtml(point.address || `x:${point.coords.x} · y:${point.coords.y} · z:${point.coords.z}`)}</small>${point.notes ? `<span class="journey-point-note">NOTE · ${escapeHtml(point.notes)}</span>` : ""}</div><time>${escapeHtml(formatJourneyDate(point.timestamp))}</time><button class="small-action journey-point-rename" type="button" data-rename-journey="${escapeHtml(focus.id)}" data-rename-point="${index}" aria-label="Rename ${escapeHtml(point.label || "checkpoint")}" title="Rename checkpoint">✎</button></div>`).join("")
+      ? focusPoints.map((point, index) => `<div class="journey-point"><i>${String(index + 1).padStart(2, "0")}</i><div><strong>${escapeHtml(point.label)}</strong><small>${escapeHtml(point.address || `x:${point.coords.x} · y:${point.coords.y} · z:${point.coords.z}`)}</small>${point.notes ? `<button class="journey-point-note note-preview-button" type="button" data-note-journey="${escapeHtml(focus.id)}" data-note-point="${index}" aria-label="Read or edit note for ${escapeHtml(point.label)}">NOTE · ${escapeHtml(point.notes)}</button>` : ""}</div><time>${escapeHtml(formatJourneyDate(point.timestamp))}</time><button class="small-action journey-point-rename" type="button" data-rename-journey="${escapeHtml(focus.id)}" data-rename-point="${index}" aria-label="Rename ${escapeHtml(point.label || "checkpoint")}" title="Rename checkpoint">✎</button></div>`).join("")
       : `<div class="journey-empty">No checkpoints yet. Update the origin coordinates to begin recording this flight.</div>`;
     $$('[data-rename-journey]', els.activeJourneyPoints).forEach((button) => button.addEventListener("click", () => {
       openCheckpointRename(button.dataset.renameJourney, Number(button.dataset.renamePoint));
+    }));
+    $$('[data-note-journey]', els.activeJourneyPoints).forEach((button) => button.addEventListener("click", () => {
+      selectCheckpointNote(button.dataset.noteJourney, Number(button.dataset.notePoint));
     }));
 
     els.journeyCount.textContent = `${String(state.journeys.length).padStart(2, "0")} JOURNE${state.journeys.length === 1 ? "Y" : "YS"}`;
@@ -1764,8 +1975,8 @@
   }
 
   function clearSettings() {
-    localStorage.removeItem(STORAGE_KEY);
     state.settings = { ...DEFAULT_SETTINGS };
+    writeSettings();
     applyTopPanelOrder();
     syncSettingsForm();
     renderAll();
@@ -1785,6 +1996,10 @@
       return {
         ...DEFAULT_SETTINGS,
         ...stored,
+        hyperdrive: math.clamp(Number(stored.hyperdrive) || 1600, 1, 999999),
+        gridSize: math.clamp(Number(stored.gridSize) || 16, 8, 64),
+        mapHeight: math.clamp(Number(stored.mapHeight) || 560, 320, 960),
+        galaxy: ["Euclid", "Hilbert Dimension", "Calypso"].includes(stored.galaxy) ? stored.galaxy : "Euclid",
         localMode: Boolean(stored.localMode),
         showNametags: stored.showNametags !== false,
         // Keep 2D as the reliable startup frame. Users can still switch to
@@ -1799,20 +2014,11 @@
   }
 
   function writeSettings() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.settings));
-    if (els.settingsSaveState) els.settingsSaveState.innerHTML = `<span class="mini-dot"></span> SAVED LOCALLY`;
+    persistData();
   }
 
   function saveSession() {
-    const selectedDestination = state.destinations[state.selectedDestinationIndex];
-    const session = {
-      location: state.location,
-      selectedDestinationIndex: state.selectedDestinationIndex,
-      selectedDestinationAddress: selectedDestination?.address || "",
-    };
-    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    if (state.location) localStorage.setItem(ORIGIN_CACHE_KEY, JSON.stringify(state.location));
-    else localStorage.removeItem(ORIGIN_CACHE_KEY);
+    persistData();
   }
 
   function readSession(availableDestinations = COMMUNITY_DESTINATIONS) {
@@ -1824,23 +2030,19 @@
       const addressIndex = storedAddress
         ? availableDestinations.findIndex((destination) => destination.address === storedAddress)
         : -1;
-      const legacyPilgrimIndex = !storedAddress && storedIndex === 3;
       const selectedDestinationIndex = addressIndex >= 0
         ? addressIndex
-        : legacyPilgrimIndex
+        : storedAddress
           ? null
-          : Number.isInteger(storedIndex) && availableDestinations.length
-            ? Math.max(0, Math.min(availableDestinations.length - 1, storedIndex))
+          : Number.isInteger(storedIndex) && availableDestinations[storedIndex]
+            ? storedIndex
             : null;
-      // A null location is the explicit reset/new-session sentinel. It must
-      // clear the destination too, including sessions written by older builds
-      // that still stored a numeric selected index alongside the sentinel.
-      if (originWasCleared) return { location: null, selectedDestinationIndex: null };
-      const savedLocations = [stored.location, readOriginCache()]
+      // An explicit empty origin must not revive the cache. A destination can
+      // still be selected first; Reset Session already writes a null selection.
+      const savedLocations = (originWasCleared ? [] : [stored.location, readOriginCache()])
         .map(normalizeSavedLocation)
-        .filter((location) => location && !sameCoords(location.coords, DEFAULT_LOCATION.coords));
+        .filter(Boolean);
       const location = savedLocations[0] || null;
-      if (!location) return { location: null, selectedDestinationIndex: null };
       return {
         location,
         selectedDestinationIndex,
@@ -1877,7 +2079,7 @@
     }
     if (![coords.x, coords.y, coords.z].every(Number.isFinite)) return null;
     return {
-      address: address || math.formatAddress(coords, planet),
+      address: address || savedAddress(coords, planet),
       coords,
       planet,
     };
@@ -1914,8 +2116,7 @@
       z: Number(rawWaypoint.coords?.z),
     };
     if (![coords.x, coords.y, coords.z].every(Number.isFinite)) return null;
-    const address = String(rawWaypoint.address || math.formatAddress(coords, rawWaypoint.planet || "0172")).toUpperCase();
-    if (address === PILGRIM_STAR.address) return null;
+    const address = String(rawWaypoint.address || savedAddress(coords, rawWaypoint.planet || "0172")).toUpperCase();
     const name = String(rawWaypoint.name || "").trim();
     if (!name) return null;
     return {
@@ -1929,20 +2130,7 @@
   }
 
   function saveWaypointStore() {
-    const presentCommunityAddresses = new Set(state.destinations
-      .filter((destination) => !destination.userCreated)
-      .map((destination) => destination.address));
-    localStorage.setItem(WAYPOINT_KEY, JSON.stringify({
-      custom: state.destinations
-        .filter((destination) => destination.userCreated)
-        .map(snapshotWaypoint),
-      deletedCustom: (state.deletedWaypoints || [])
-        .filter((waypoint) => !state.destinations.some((destination) => destination.address === waypoint.address))
-        .map(snapshotWaypoint),
-      removedCommunity: COMMUNITY_DESTINATIONS
-        .filter((destination) => !presentCommunityAddresses.has(destination.address))
-        .map((destination) => destination.address),
-    }));
+    persistData();
   }
 
   function readJourneyStore() {
@@ -2009,11 +2197,7 @@
   }
 
   function saveJourneyStore() {
-    localStorage.setItem(JOURNEY_KEY, JSON.stringify({
-      journeys: state.journeys,
-      activeJourneyId: state.activeJourneyId,
-      viewingJourneyId: state.viewingJourneyId,
-    }));
+    persistData();
   }
 
   function seedActivities() {
@@ -2076,6 +2260,11 @@
     };
   }
 
+  function savedAddress(coords, system) {
+    try { return math.formatAddress(coords, system); }
+    catch (_) { return `${coords.x}, ${coords.y}, ${coords.z}`; }
+  }
+
   function formatDestinationMeta(destination) {
     const origin = destination.community ? `${destination.community} · ` : "";
     return `${origin}${destination.address} · ${destination.userCreated ? "CUSTOM WAYPOINT" : "COMMUNITY WAYPOINT"}`;
@@ -2086,6 +2275,10 @@
   }
 
   function showToast(message, isError = false) {
+    if (storageError && !isError) {
+      message = "Changes are temporary — export a backup in Config before closing. Browser storage is unavailable or full.";
+      isError = true;
+    }
     els.toast.textContent = message;
     els.toast.style.borderColor = isError ? "rgba(255,123,114,.55)" : "rgba(100,232,255,.45)";
     els.toast.classList.add("is-visible");

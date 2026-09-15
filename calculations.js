@@ -1,15 +1,15 @@
 /*
  * Pilgrim Star Path — isolated calculation engine.
  *
- * The current build uses a transparent mock scale so that the UI can be
- * tested without an external API. Replace the constants or functions here
- * when the verified navigation rules are ready; app.js should not need to
- * change for normal presentation work.
+ * Region-distance estimates use the original Pilgrim Star Path scale:
+ * https://github.com/pahefu/pilgrimstarpath/blob/master/js/gdl.js
+ * Its calculateDistance multiplies by 100 and its display multiplies by 4.
+ * Region positions cannot resolve the exact distance between individual stars.
  */
 (function (global) {
   "use strict";
 
-  const LY_PER_REGION = 188;
+  const LY_PER_REGION = 400;
   const DEFAULT_PLANET = "0172";
   const GALAXY_CENTRE = Object.freeze({ x: 2047, y: 127, z: 2047 });
 
@@ -30,6 +30,15 @@
     return number;
   }
 
+  function validateCoordinates(coords) {
+    for (const [axis, max] of [["x", 4095], ["y", 255], ["z", 4095]]) {
+      if (!Number.isInteger(coords[axis]) || coords[axis] < 0 || coords[axis] > max) {
+        throw new Error(`${axis.toUpperCase()} must be a whole number from 0 to ${max}. Use signal-booster coordinates, not signed portal offsets.`);
+      }
+    }
+    return coords;
+  }
+
   /**
    * Accepts the familiar four-block address (ABCD:ABCD:ABCD:ABCD) or a
    * simple decimal triple (x, y, z). The fourth block is retained as planet.
@@ -43,7 +52,7 @@
       if (blocks.length !== 4 || blocks.some((block) => !/^[0-9a-f]{1,4}$/i.test(block))) {
         throw new Error("Use four hexadecimal blocks, for example 0432:0076:0D66:0172.");
       }
-      return {
+      const parsed = {
         x: parseCoordinateBlock(blocks[0], "X block"),
         y: parseCoordinateBlock(blocks[1], "Y block"),
         z: parseCoordinateBlock(blocks[2], "Z block"),
@@ -51,6 +60,8 @@
         address: blocks.map((block) => block.toUpperCase().padStart(4, "0")).join(":"),
         format: "hex",
       };
+      validateCoordinates(parsed);
+      return parsed;
     }
 
     const parts = value.split(/[\s,]+/).filter(Boolean);
@@ -58,6 +69,7 @@
       throw new Error("Use three decimal coordinates separated by commas or spaces.");
     }
     const [x, y, z] = parts.map(Number);
+    validateCoordinates({ x, y, z });
     return { x, y, z, planet: DEFAULT_PLANET, address: formatAddress({ x, y, z }, DEFAULT_PLANET), format: "decimal" };
   }
 
@@ -66,6 +78,7 @@
   }
 
   function formatAddress(coords, planet) {
+    validateCoordinates(coords);
     const planetBlock = typeof planet === "string" && /^[0-9a-f]{1,4}$/i.test(planet)
       ? planet.toUpperCase().padStart(4, "0")
       : formatHex(planet || DEFAULT_PLANET);
@@ -164,7 +177,9 @@
     return {
       centreDistance,
       destinationDistance,
-      estimatedJumps: Math.max(1, Math.ceil(destinationDistance / hyperdrive)),
+      estimatedJumps: Math.ceil(destinationDistance / hyperdrive),
+      sameRegion: destinationDistance === 0,
+      hasPlanarBearing: user.x !== target.x || user.z !== target.z,
       angle: Math.abs(signedAngle),
       signedAngle,
       angleOfAttack,
@@ -216,5 +231,6 @@
     parseLocation,
     round,
     vectorBetween,
+    validateCoordinates,
   });
 })(window);

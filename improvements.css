@@ -1,0 +1,115 @@
+/* v36: readable controls and a shorter path from coordinates to the map. */
+/* v37: origin status and readable checkpoint notes. */
+.hex-input-indicator { display: inline-flex; align-items: center; gap: 5px; }
+.hex-input-indicator .mini-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; background: currentColor; }
+.hex-input-indicator.is-empty { color: #ffd0a7; }
+.hex-input-indicator.is-valid { color: #a2e6be; }
+.hex-input-indicator.is-invalid { color: #ff7b72; }
+.hex-input-indicator.is-invalid .mini-dot { background: #ff4d4d; box-shadow: 0 0 9px rgba(255,77,77,.8); }
+#originJourneyPoints .origin-journey-point-copy strong { font-size: 15px; line-height: 1.5; white-space: normal; }
+#originJourneyPoints .origin-journey-point-copy small { font-size: 13px; line-height: 1.5; white-space: normal; overflow-wrap: anywhere; }
+#originJourneyPoints .origin-journey-point-note { font-size: 14px; line-height: 1.6; white-space: normal; overflow-wrap: anywhere; }
+#originJourneyPoints .origin-journey-point > i { font-size: 11px; }
+#originJourneyPoints .origin-journey-list { max-height: 280px; gap: 9px; }
+#originJourneyPoints .origin-journey-point { padding: 10px 8px; }
+#originJourneyPoints .origin-note-trigger { font-size: 12px; min-height: 36px; }
+#originJourneyPoints .origin-journey-empty, #journeySaveStatus, #checkpointNoteStatus { font-size: 13px; line-height: 1.6; }
+.note-preview-button { display: block; width: 100%; padding: 6px 0; border: 0; background: transparent; color: #b9e9d7; text-align: left; cursor: pointer; }
+.note-preview-button:hover { color: var(--cyan); text-decoration: underline; }
+.checkpoint-note-dialog { width: min(700px, calc(100vw - 28px)); max-height: calc(100dvh - 32px); overflow-y: auto; }
+.checkpoint-note-dialog h2 { font-size: 22px; }
+.checkpoint-note-dialog .dialog-copy { font-size: 15px; overflow-wrap: anywhere; }
+.note-editor-label { display: block; margin-bottom: 10px; font-size: 15px; color: var(--text-soft); }
+#checkpointNoteEditor { box-sizing: border-box; width: 100%; min-height: 230px; max-height: 55vh; padding: 16px; resize: vertical; border: 1px solid var(--line-strong); border-radius: 8px; color: var(--text); background: var(--bg-deep); font: 18px/1.7 "Segoe UI", sans-serif; }
+[hidden] { display: none !important; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible,
+textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); outline-offset: 4px; }
+.panel-label, .select-label, .field-meta, .mini-stat-row span, .panel-state,
+.advisory-details span, .target-metrics span, .compass-heading, .compass-footer,
+.journey-save-note, .checkpoint-note-heading, .checkpoint-note-heading .panel-label,
+.checkpoint-note-save, .journey-point small, .destination-item small,
+.form-field > span, .dialog-field > span, .map-overlay, .legend, .route-key,
+.waypoint-entry-button small, .angle-readout span, .angle-readout small,
+.angle-telemetry-meta, .rail-button, .target-address-block > span { font-size: 11px; }
+.primary-button, .secondary-button, .danger-button, .ghost-button,
+.text-button, .waypoint-entry-button, .dialog-copy, .dialog-hint, .dialog-error,
+.warning-strip, .guidance-note p, .orientation-steps p, .orientation-quote-block small,
+.pilgrim-reference p, .help-card p, .help-note p { font-size: 13px; line-height: 1.5; }
+.primary-button, .secondary-button, .danger-button, .ghost-button { min-height: 44px; }
+.location-field input, .dialog-field input, .form-field input, .form-field select,
+.select-wrap select, .checkpoint-note-entry textarea { font-size: 15px; }
+.map-tool { width: 38px; height: 38px; flex-shrink: 0; }
+.heading-actions, .map-heading-tools, .settings-actions, .backup-actions { flex-wrap: wrap; }
+.panel-heading { gap: 10px; flex-wrap: wrap; }
+.panel-heading-actions { flex-wrap: wrap; }
+.panel-state { white-space: normal; }
+.target-address-block strong { overflow-wrap: anywhere; }
+.compass-footer { flex-wrap: wrap; gap: 5px; }
+.compass-footer span:last-child { max-width: 110px; }
+.input-help { color: var(--text-soft); font-size: 12px; line-height: 1.6; margin: 9px 0; }
+.input-help code { color: var(--cyan); font-size: 12px; overflow-wrap: anywhere; }
+.inline-error { color: var(--danger); font-size: 13px; line-height: 1.5; margin: 0; }
+.inline-error:empty { display: none; }
+.quick-start { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 0 18px; color: var(--text-soft); font-size: 13px; }
+.quick-start button { padding: 10px 13px; border: 1px solid var(--line-strong); border-radius: 8px; background: var(--surface); color: var(--cyan); min-height: 44px; }
+.quick-start button.is-complete { border-color: rgba(112,221,166,.5); color: #a2e6be; }
+.extra-details { border-top: 1px solid var(--line); margin-top: 15px; padding-top: 12px; }
+.extra-details > summary { color: var(--cyan); cursor: pointer; font-size: 13px; line-height: 1.5; padding: 6px 0; }
+.extra-details[open] > summary { margin-bottom: 12px; }
+.extra-details p { color: var(--text-soft); font-size: 13px; line-height: 1.6; }
+.route-overview { padding: 14px 18px; margin: 0 0 15px; border-left: 3px solid var(--cyan); border-radius: 5px; background: rgba(17,51,66,.65); }
+.route-overview strong { display: block; color: #e7f7fb; font-size: 15px; line-height: 1.5; }
+.route-overview p { margin-top: 5px; color: var(--text-soft); font-size: 12px; line-height: 1.5; }
+#belowMapDetails:empty { display: none; }
+#belowMapDetails { margin: 15px 0; }
+.traveller-copy, .traveller-copy p, .backup-status { color: var(--text-soft); font-size: 14px; line-height: 1.7; }
+.traveller-copy p + p { margin-top: 18px; }
+.backup-actions { display: flex; gap: 9px; margin: 22px 0 14px; }
+.backup-status { min-height: 3em; }
+.storage-warning { position: sticky; top: 8px; z-index: 50; padding: 16px; margin-bottom: 15px; background: #421e23; border: 1px solid var(--danger); border-radius: 8px; color: #fff; font-size: 14px; line-height: 1.5; }
+.summary-grid .location-card, .summary-grid .target-card, .summary-grid .advisory-card { min-width: 0; }
+.route-card { min-height: auto; }
+.checkpoint-note-entry { flex-wrap: wrap; }
+.checkpoint-note-entry textarea { min-width: 0; }
+.origin-journey-point-note { font-size: 11px; }
+.origin-rename-trigger, .waypoint-delete, .small-action { min-width: 32px; min-height: 32px; }
+.toast { font-size: 14px; line-height: 1.5; }
+@media (max-width: 1250px) {
+  .summary-grid { grid-template-columns: minmax(0,1fr) minmax(0,1fr); }
+}
+@media (max-width: 920px) {
+  .compact-layout .summary-grid { grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: start; }
+  .compact-layout .panel-drag-handle { display: none; }
+  .compact-layout #belowMapDetails .advisory-card { min-height: auto; }
+  .compact-layout .main-grid { grid-template-columns: minmax(0,1fr); }
+  .compact-layout .telemetry-stack { grid-template-columns: minmax(0,1fr); }
+  .map-heading-tools { gap: 6px; }
+}
+@media (max-width: 620px) {
+  h1 { font-size: 27px; }
+  .main-content { padding-top: 18px; }
+  .view-heading { margin-bottom: 16px; }
+  .heading-actions { gap: 7px; }
+  .heading-actions .ghost-button { padding: 8px 10px; font-size: 12px; }
+  .compact-layout .summary-grid { grid-template-columns: minmax(0,1fr); gap: 10px; }
+  .quick-start { gap: 7px; }
+  .quick-start button { font-size: 12px; padding: 8px; }
+  .quick-start > span[aria-hidden] { display: none; }
+  #guidanceStep { flex-basis: 100%; padding: 2px 0; }
+  .location-field input, .dialog-field input, .form-field input, .form-field select,
+  .select-wrap select, .checkpoint-note-entry textarea { font-size: 16px; }
+  .map-mode { width: 100%; }
+  .map-tool { width: 44px; height: 44px; }
+  .map-canvas-wrap, #starMap, #starMap3d { min-height: 360px !important; }
+  .map-footer-actions { flex-wrap: wrap; }
+  .compass-widget { margin-top: 15px; }
+  .dialog-actions { flex-wrap: wrap; }
+  .backup-actions > button { flex: 1 1 100%; }
+  .checkpoint-note-entry { grid-template-columns: minmax(0,1fr); }
+  .checkpoint-note-save { min-height: 44px; }
+  .toast { bottom: 80px; right: 12px; }
+  .target-details, .checkpoint-details { margin-top: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}

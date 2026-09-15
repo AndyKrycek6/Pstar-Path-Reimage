@@ -8,7 +8,8 @@
       content="Pilgrim Star Path Reimagined — a local-first deep-space navigation console."
     />
     <title>Pilgrim Star Path Reimagined</title>
-    <link rel="stylesheet" href="styles.css?v=35" />
+    <link rel="stylesheet" href="styles.css?v=37" />
+    <link rel="stylesheet" href="improvements.css?v=37" />
   </head>
   <body>
     <div class="ambient-glow ambient-glow-one"></div>
@@ -27,7 +28,7 @@
           <div class="brand-kicker">INTERGALACTIC NAVIGATION NETWORK</div>
           <div class="brand-title">PILGRIM <span>STAR PATH</span></div>
         </div>
-        <span class="version-badge">REIMAGINED / v1.0</span>
+        <span class="version-badge">REIMAGINED / v37</span>
       </div>
 
       <div class="topbar-right">
@@ -67,11 +68,12 @@
             <span class="signal-pulse"></span>
             <span>LOCAL</span>
           </div>
-          <div class="rail-build">BUILD 001</div>
+          <div class="rail-build">BUILD 037</div>
         </div>
       </aside>
 
       <main class="main-content">
+        <div id="storageWarning" class="storage-warning" role="alert" hidden></div>
         <section class="view is-visible" data-view-panel="map" id="mapView">
           <div class="view-heading">
             <div>
@@ -96,6 +98,13 @@
             </div>
           </div>
 
+          <nav class="quick-start" aria-label="Plan your route">
+            <button id="originStep" type="button">1 · Enter your location</button>
+            <span aria-hidden="true">→</span>
+            <button id="targetStep" type="button">2 · Choose destination</button>
+            <span aria-hidden="true">→</span>
+            <span id="guidanceStep">3 · Follow guidance</span>
+          </nav>
           <section class="summary-grid" id="summaryGrid" aria-label="Route summary">
             <article class="panel top-panel location-card" id="locationPanel" data-top-panel="location" data-top-panel-label="USER LOCATION">
               <div class="panel-heading">
@@ -111,13 +120,14 @@
               <div>
               <div class="location-field">
                 <span class="field-prefix">ADDR</span>
-                <input id="locationInput" type="text" value="" autocomplete="off" spellcheck="false" aria-label="User location coordinates" />
+                <input id="locationInput" type="text" value="" placeholder="Enter hex address" aria-describedby="locationError" autocomplete="off" spellcheck="false" aria-label="User location coordinates" />
                 <button class="icon-button" id="copyLocationButton" title="Copy location" aria-label="Copy location">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="11" height="11" rx="1.5"/><path d="M16 8V5.5A1.5 1.5 0 0 0 14.5 4h-9A1.5 1.5 0 0 0 4 5.5v9A1.5 1.5 0 0 0 5.5 16H8"/></svg>
                 </button>
               </div>
+              <p id="locationError" class="inline-error" role="alert"></p>
               <div class="field-meta">
-                <span><span class="mini-dot"></span> Hex address accepted</span>
+                <span id="hexInputIndicator" class="hex-input-indicator is-empty"><span class="mini-dot" aria-hidden="true"></span> <span id="hexInputStatus" aria-live="polite">Awaiting hex input</span></span>
                 <span id="locationParseStatus">NO ORIGIN SAVED</span>
               </div>
               <div class="button-row">
@@ -127,7 +137,7 @@
                 </button>
                 <button class="secondary-button" id="drawRingButton">
                   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><circle cx="12" cy="12" r="3"/><path d="m18 6 2-2M6 18l-2 2"/></svg>
-                  Draw B.Hole ring
+                  Show reference ring
                 </button>
               </div>
               <button class="waypoint-entry-button" id="homeAddWaypointButton">
@@ -139,6 +149,7 @@
                 <div><span>GALAXY</span><strong id="galaxySummary">EUCLID 01</strong></div>
                 <div><span>HYPERDRIVE</span><strong id="hyperdriveSummary">1,600 LY</strong></div>
               </div>
+              <details class="extra-details checkpoint-details"><summary>Journey checkpoints &amp; notes</summary>
               <div class="journey-save-note"><span class="mini-dot"></span><span id="journeySaveStatus">LOCATION CHECKPOINTS SAVE TO JOURNEYS</span></div>
               <div class="origin-journey-points" id="originJourneyPoints" aria-live="polite"></div>
               <div class="checkpoint-note-box" id="checkpointNoteBox">
@@ -151,6 +162,7 @@
                   <button class="text-button checkpoint-note-save" id="saveCheckpointNoteButton" type="button" disabled title="Save note to the selected journey waypoint">＋ SAVE NOTE</button>
                 </div>
               </div>
+              </details>
               </div>
             </article>
 
@@ -167,6 +179,7 @@
                 <select id="destinationSelect" aria-label="Select destination"><option value="">No destination selected</option></select>
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5"/></svg>
               </div>
+              <details class="extra-details target-details"><summary>Destination details &amp; Pilgrim Star reference</summary>
               <div class="target-address-block">
                 <span>COORDINATE ADDRESS</span>
                 <strong id="targetAddress">—</strong>
@@ -192,6 +205,7 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 12l7.5 9 7.5-9L12 3Z"/><path d="M12 7v10M8.5 12H15.5"/></svg>
                 <p id="guidanceText">Select a destination to calculate guidance.</p>
               </div>
+            </details>
             </article>
 
             <article class="panel top-panel advisory-card" id="advisoryPanel" data-top-panel="advisory" data-top-panel-label="ROUTE ADVISORY">
@@ -202,12 +216,12 @@
                 </div>
                 <div class="panel-heading-actions">
                   <button class="panel-drag-handle" type="button" draggable="true" aria-label="Drag to reorder flight guidance" title="Drag to reorder">⠿</button>
-                  <span class="panel-state state-waiting" id="advisoryState">WAITING</span>
+                  <span class="panel-state state-waiting" id="advisoryState">NO LOCK</span>
                 </div>
               </div>
               <div>
               <div class="advisory-main">
-                <div class="advisory-number"><span id="jumpsValue">—</span><small>JUMPS</small></div>
+                <div class="advisory-number"><span id="jumpsValue">—</span><small>EST. JUMPS</small></div>
                 <div class="advisory-details">
                   <div><span>HYPERDRIVE RANGE</span><strong id="jumpRangeValue">1,600 LY</strong></div>
                   <div><span>DEGREES FROM CENTRE</span><strong><span id="degreesValue">—</span>° <span id="directionValue">—</span></strong></div>
@@ -233,6 +247,7 @@
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 9 17H3L12 3Z"/><path d="M12 9v4M12 17h.01"/></svg>
                 <span id="warningText">Select a destination to calculate route guidance.</span>
               </div>
+              <details class="extra-details"><summary>Vertical approach &amp; telemetry</summary>
               <section class="angle-telemetry" id="angleTelemetry" aria-label="Target approach angle telemetry">
                 <div class="angle-telemetry-heading">
                   <div>
@@ -267,10 +282,12 @@
                   <span id="angleVerticalDelta">—</span>
                 </div>
               </section>
+              </details>
               </div>
             </article>
           </section>
 
+          <div class="route-overview" aria-live="polite"><strong id="compactRouteSummary">Enter your signal-booster address to begin.</strong><p>Distance and jump estimates use 400 LY per region. Star positions and available stops can change the actual route. The reference ring is illustrative.</p></div>
           <section class="main-grid">
             <article class="panel map-panel">
               <div class="map-panel-heading">
@@ -433,12 +450,14 @@
                   </div>
                   <span class="panel-state state-waiting" id="routeState">WAITING</span>
                 </div>
+                <details class="extra-details"><summary>Coordinates &amp; distance estimates</summary>
                 <div class="route-table">
                   <div class="route-row"><span class="route-key">POS</span><strong id="posValue">—</strong></div>
                   <div class="route-row"><span class="route-key">DEST</span><strong id="destValue">—</strong></div>
                   <div class="route-row"><span class="route-key">TO CENTRE</span><strong><span id="centerDistanceValue">—</span> <small>LY</small></strong></div>
                   <div class="route-row"><span class="route-key">TO DEST</span><strong><span id="destinationDistanceValue">—</span> <small>LY</small></strong></div>
                 </div>
+                </details>
               </article>
 
               <article class="panel destination-list-card">
@@ -468,6 +487,7 @@
             </aside>
           </section>
 
+          <section id="belowMapDetails" aria-label="Detailed flight guidance"></section>
           <details class="orientation-dropdown panel">
             <summary>
               <span class="orientation-summary-icon">⌖</span>
@@ -494,7 +514,7 @@
 
           <section class="quick-strip">
             <div class="quick-item"><span class="quick-icon">⌖</span><span><strong>Coordinate engine</strong><small>Hex and decimal inputs supported</small></span></div>
-            <div class="quick-item"><span class="quick-icon">◎</span><span><strong>Black-hole planning</strong><small>Visualise ring distance and route vectors</small></span></div>
+            <div class="quick-item"><span class="quick-icon">◎</span><span><strong>Black-hole planning</strong><small>Illustrative ring; not a predicted exit</small></span></div>
             <div class="quick-item"><span class="quick-icon">↗</span><span><strong>Local-first by design</strong><small>Your session stays in this browser</small></span></div>
             <div class="quick-meta">PILGRIM STAR PATH <span>·</span> GALACTIC REFERENCE FRAME</div>
           </section>
@@ -518,12 +538,8 @@
               <div id="destinationDirectory" class="directory-list"></div>
             </article>
             <article class="panel workflow-panel">
-              <div class="panel-heading"><div><span class="panel-label">WORKFLOW</span><h2>How this build grows</h2></div></div>
-              <div class="workflow-steps">
-                <div class="workflow-step is-complete"><span>01</span><div><strong>Plot the local route</strong><p>Enter an origin, select a community waypoint and validate the visual route.</p></div><i>✓</i></div>
-                <div class="workflow-step is-current"><span>02</span><div><strong>Calibrate the maths</strong><p>Keep the calculation engine separate and compare it with known examples.</p></div><i>NOW</i></div>
-                <div class="workflow-step"><span>03</span><div><strong>Connect real datasets</strong><p>Add external sources only after the local experience is stable.</p></div><i>SOON</i></div>
-              </div>
+              <div class="panel-heading"><div><span class="panel-label">TRAVELLER NOTES</span><h2>Choose a place worth keeping.</h2></div></div>
+              <div class="traveller-copy"><p>Add a custom destination using its signal-booster address. Choose it from the directory to plot a route.</p><p>The three community entries are Euclid references. Addresses do not identify a galaxy: check your in-game galaxy before travelling.</p><p>Deleted waypoints can be restored from the map's Stored Waypoints panel. Save a backup in Config to take your records to another browser.</p></div>
             </article>
           </div>
         </section>
@@ -533,7 +549,7 @@
             <div>
               <div class="eyebrow">JOURNEY ARCHIVE <span class="eyebrow-line"></span> LOCAL FLIGHT RECORD</div>
               <h1>Keep the path you travelled.</h1>
-              <p class="view-subtitle">Every updated origin becomes a checkpoint. Resume an active record after returning, or restore a completed journey to replay its trail in both map views.</p>
+              <p class="view-subtitle">Each new origin address becomes a checkpoint. Completing a journey keeps only recorded stops. Resume an active record after returning, or restore a completed journey to replay its trail in both map views.</p>
             </div>
             <button class="primary-button" id="newJourneyButton" type="button"><span class="button-plus">+</span> New journey</button>
           </div>
@@ -586,14 +602,13 @@
               </div>
               <div class="settings-actions"><button class="primary-button" id="saveSettingsButton">Save and apply</button><button class="danger-button" id="clearSettingsButton">Clear settings cache</button></div>
             </article>
-            <article class="panel design-panel">
-              <div class="panel-heading"><div><span class="panel-label">VISUAL SYSTEM</span><h2>Interface tokens</h2></div></div>
-              <div class="token-list">
-                <div class="token-row"><span class="swatch swatch-cyan"></span><div><strong>Signal cyan</strong><small>Primary controls and map grid</small></div><code>#64E8FF</code></div>
-                <div class="token-row"><span class="swatch swatch-violet"></span><div><strong>Deep-space violet</strong><small>Galaxy haze and route depth</small></div><code>#9B8BFF</code></div>
-                <div class="token-row"><span class="swatch swatch-amber"></span><div><strong>Advisory amber</strong><small>Warnings and destination focus</small></div><code>#F5A96C</code></div>
-                <div class="token-row"><span class="swatch swatch-ink"></span><div><strong>Console ink</strong><small>Panels and navigation surfaces</small></div><code>#071421</code></div>
-              </div>
+            <article class="panel design-panel backup-panel">
+              <div class="panel-heading"><div><span class="panel-label">YOUR FLIGHT RECORDS</span><h2>Backup &amp; restore</h2></div></div>
+              <p class="traveller-copy">Download your journeys, checkpoint notes, custom and deleted waypoints, origin and settings. Keep a backup before moving to a new browser or clearing browser data.</p>
+              <div class="backup-actions"><button class="primary-button" id="exportBackupButton" type="button">Export backup</button><button class="secondary-button" id="importBackupButton" type="button">Import backup</button><button class="ghost-button" id="retrySaveButton" type="button">Save again</button></div>
+              <input id="backupFileInput" type="file" accept=".json,application/json" hidden />
+              <p id="backupStatus" class="backup-status" role="status" aria-live="polite">Restore previews the contents before replacing your saved data. Maximum file size: 20 MB.</p>
+              <details class="extra-details"><summary>How to move to a new version</summary><p>When using a local server, keep the same browser and web address to keep your records. For files opened directly, browsers may store each folder separately: export here, then import in the new version.</p></details>
             </article>
           </div>
         </section>
@@ -612,7 +627,7 @@
             <article class="panel help-card"><span class="help-number">03</span><h2>Explore the projection</h2><p>Drag to pan and use the smooth wheel or map controls to zoom. Use Snap to User to centre either map on your origin, or toggle map nametags when you want a cleaner view.</p></article>
             <article class="panel help-card"><span class="help-number">04</span><h2>Keep the journey</h2><p>Open Journeys to start a named flight record. Rename checkpoints or add notes below the origin status. Active journeys resume from their saved checkpoints, while completed journeys can be restored to replay their route in both map views.</p></article>
           </div>
-          <article class="panel help-note"><div class="help-note-icon">⌁</div><div><span class="panel-label">BUILD NOTE</span><h2>Local-first, expandable later.</h2><p>Your saved settings and session state remain in this browser. The app is ready for a real destination data layer when the calculation rules have been verified.</p></div></article>
+          <article class="panel help-note"><div class="help-note-icon">⌁</div><div><span class="panel-label">BUILD NOTE</span><h2>Local-first, expandable later.</h2><p>Your saved settings and session state remain in this browser. Distances use the original Pilgrim Star Path scale of 400 LY per region. They are estimates between regions, not exact distances between stars. The black-hole ring is illustrative and does not predict an exit. Export backups in Config.</p></div></article>
         </section>
       </main>
     </div>
@@ -626,7 +641,7 @@
           </div>
           <button class="dialog-close" type="button" id="closeWaypointButton" aria-label="Close add waypoint dialog">×</button>
         </div>
-        <p class="dialog-copy">Give this destination a name, then enter either a four-block address or three decimal coordinates.</p>
+        <p class="dialog-copy">Give this destination a name, then enter a four-block signal-booster address or three whole-number coordinates (X/Z: 0–4095; Y: 0–255).</p>
         <div class="dialog-fields">
           <label class="dialog-field">
             <span>Waypoint name</span>
@@ -655,7 +670,7 @@
           </div>
           <button class="dialog-close" type="button" id="closeJourneyButton" aria-label="Close new journey dialog">×</button>
         </div>
-        <p class="dialog-copy">Give this flight a name. Every later origin update will be saved as a checkpoint until you complete the journey.</p>
+        <p class="dialog-copy">Give this flight a name. Starting it closes the current journey at its last recorded stop. Every later origin update is saved as a checkpoint; choosing a target never records a visit.</p>
         <div class="dialog-fields">
           <label class="dialog-field">
             <span>Journey name</span>
@@ -696,9 +711,29 @@
       </form>
     </dialog>
 
+    <dialog class="waypoint-dialog checkpoint-note-dialog" id="checkpointNoteDialog" aria-labelledby="checkpointNoteDialogTitle" aria-describedby="checkpointNoteContext">
+      <form class="waypoint-form" id="checkpointNoteForm">
+        <div class="dialog-header"><h2 id="checkpointNoteDialogTitle">Checkpoint note</h2><button class="dialog-close" type="button" id="closeNoteDialogButton" aria-label="Close checkpoint note">×</button></div>
+        <p id="checkpointNoteContext" class="dialog-copy"></p>
+        <label class="note-editor-label" for="checkpointNoteEditor">Read or edit this note</label>
+        <textarea id="checkpointNoteEditor" rows="8" maxlength="240" placeholder="Add your checkpoint notes here…"></textarea>
+        <p class="dialog-hint">Up to 240 characters. Clear the text and save to remove a note.</p>
+        <div class="dialog-actions"><button class="ghost-button" type="button" id="cancelNoteDialogButton">Cancel</button><button class="primary-button" type="submit">Save note</button></div>
+      </form>
+    </dialog>
+    <dialog class="waypoint-dialog" id="backupImportDialog" aria-labelledby="backupImportTitle" aria-describedby="backupPreview">
+      <div class="waypoint-form">
+        <div class="dialog-header"><h2 id="backupImportTitle">Restore this backup?</h2></div>
+        <p id="backupPreview" class="dialog-copy"></p>
+        <p class="dialog-copy">Export your current records first if you want to keep both sets. Restoring replaces saved data in this browser.</p>
+        <div class="dialog-actions"><button class="ghost-button" id="cancelBackupButton" type="button" autofocus>Cancel</button><button class="primary-button" id="confirmBackupButton" type="button">Replace with backup</button></div>
+      </div>
+    </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="calculations.js?v=35"></script>
-    <script src="map3d.js?v=35"></script>
-    <script src="app.js?v=35"></script>
+    <script src="calculations.js?v=37"></script>
+    <script src="map3d.js?v=37"></script>
+    <script src="backup.js?v=37"></script>
+    <script src="app.js?v=37"></script>
   </body>
 </html>
+
