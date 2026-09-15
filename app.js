@@ -1187,7 +1187,6 @@
     state.selectedDestinationIndex = index;
     resetViewport();
     syncLiveDestination(state.destinations[index]);
-    if (is3DMap()) map3d.reset();
     logActivity(`Target selected: ${state.destinations[index].name}`);
     saveSession();
     renderAll();
@@ -1196,7 +1195,6 @@
   function toggleLocalMode() {
     state.settings.localMode = !state.settings.localMode;
     resetViewport();
-    if (is3DMap()) map3d.reset();
     writeSettings();
     logActivity(state.settings.localMode ? "Local mode enabled" : "Local mode disabled");
     renderAll();
@@ -1316,8 +1314,15 @@
   }
 
   function recenterMap() {
-    resetViewport();
-    if (is3DMap()) map3d.reset(); else updateMapTransform();
+    if (is3DMap()) {
+      if (!map3d?.snapToUser?.()) {
+        showToast("Enter origin coordinates before recentering the 3D map.", true);
+        return;
+      }
+    } else {
+      resetViewport();
+      updateMapTransform();
+    }
     logActivity("Map view recentered");
     showToast("Map view recentered.");
   }
