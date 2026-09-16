@@ -21,6 +21,12 @@ The supplied v35 source folder was left unchanged while preparing this release.
 
 ## v37 updates
 
+### Automatic 3D orbit
+
+Switch the map to **3D**, choose **Free view**, **Player lock** or **Destination lock**, then select **Start orbit**. A full revolution takes two minutes. Player and destination locks keep that point centred; free view rotates around your current view centre. Locks become available once the corresponding coordinates are set.
+
+Use **Pause orbit** to stop. Dragging also pauses the orbit; Shift-drag switches to free view and pans. Zoom and tilt remain adjustable. Switching away from the map, hiding the browser tab or returning to 2D pauses animation. **Reset map view** stops the orbit and restores the initial view. Orbit starts only when requested, including when reduced motion is enabled.
+
 - Removed the examples below the origin entry.
 - No destination shows a pulsing **NO LOCK** advisory (respecting reduced-motion settings).
 - Empty input shows **Awaiting hex input**; invalid input shows **Invalid hex input** in red with a red orb.

@@ -70,6 +70,12 @@
     let drag = null;
     let zoomFrame = 0;
     let zoomTargetDistance = DEFAULT_CAMERA.distance;
+    let pivot = { x: 0, y: 0, z: 0 };
+    let orbitFocus = "free";
+    let orbitRunning = false;
+    let orbitFrame = 0;
+    let lastOrbitTime = null;
+    let active = true;
     const stars = makeStars(260);
 
     const requestFrame = (callback) => typeof global.requestAnimationFrame === "function"
@@ -94,15 +100,102 @@
 
     function setScene(nextScene) {
       scene = { ...scene, ...nextScene };
+      if (!focusAvailable(orbitFocus)) {
+        pauseOrbit();
+        orbitFocus = "free";
+      }
+      updatePivot();
+      notifyOrbit();
       render();
     }
 
     function reset() {
+      pauseOrbit();
+      orbitFocus = "free";
+      pivot = { x: 0, y: 0, z: 0 };
       if (zoomFrame) cancelFrame(zoomFrame);
       zoomFrame = 0;
       camera = { ...DEFAULT_CAMERA };
       zoomTargetDistance = camera.distance;
+      notifyOrbit();
       render();
+    }
+
+    function focusAvailable(focus) {
+      return focus === "free" || (focus === "player" && scene.originReady && scene.user)
+        || (focus === "destination" && scene.targetReady && scene.target);
+    }
+
+    function getOrbitState() {
+      return { running: orbitRunning, focus: orbitFocus,
+        playerAvailable: Boolean(scene.originReady && scene.user),
+        destinationAvailable: Boolean(scene.targetReady && scene.target) };
+    }
+
+    function notifyOrbit() {
+      if (typeof options.onOrbitChange === "function") options.onOrbitChange(getOrbitState());
+    }
+
+    function updatePivot() {
+      if (orbitFocus === "player") pivot = worldFromCoords(scene.user);
+      if (orbitFocus === "destination") pivot = worldFromCoords(scene.target);
+    }
+
+    // Move the pivot to the current view centre without moving the picture.
+    function absorbPan() {
+      const rx = -camera.panX;
+      const ry = -camera.panY;
+      const rz = -ry * Math.sin(camera.pitch);
+      pivot.x += rx * Math.cos(camera.yaw) + rz * Math.sin(camera.yaw);
+      pivot.y += ry * Math.cos(camera.pitch);
+      pivot.z += rx * Math.sin(camera.yaw) - rz * Math.cos(camera.yaw);
+      camera.panX = 0;
+      camera.panY = 0;
+    }
+
+    function setOrbitFocus(focus) {
+      if (!["free", "player", "destination"].includes(focus) || !focusAvailable(focus)) return false;
+      if (focus === "free") absorbPan();
+      else { camera.panX = 0; camera.panY = 0; }
+      orbitFocus = focus;
+      updatePivot();
+      notifyOrbit();
+      render();
+      return true;
+    }
+
+    function pauseOrbit() {
+      if (orbitFrame) cancelFrame(orbitFrame);
+      orbitFrame = 0;
+      lastOrbitTime = null;
+      orbitRunning = false;
+      notifyOrbit();
+    }
+
+    function startOrbit() {
+      if (!active || global.document?.hidden || !focusAvailable(orbitFocus)) return false;
+      if (orbitRunning) return true;
+      if (orbitFocus === "free") absorbPan();
+      orbitRunning = true;
+      lastOrbitTime = null;
+      const step = (time) => {
+        orbitFrame = 0;
+        if (!orbitRunning) return;
+        // Cap long gaps so returning from a suspended window cannot jump the view.
+        const elapsed = lastOrbitTime === null ? 0 : clamp(time - lastOrbitTime, 0, 100);
+        lastOrbitTime = time;
+        camera.yaw = (camera.yaw + elapsed * TAU / 120000) % TAU;
+        render();
+        orbitFrame = requestFrame(step);
+      };
+      orbitFrame = requestFrame(step);
+      notifyOrbit();
+      return true;
+    }
+
+    function setActive(value) {
+      active = Boolean(value);
+      if (!active) pauseOrbit();
     }
 
     function notifyZoom() {
@@ -134,24 +227,11 @@
     }
 
     function snapToUser() {
-      if (!scene.originReady || !scene.user) return false;
-      const point = worldFromCoords(scene.user);
-      const yawCos = Math.cos(camera.yaw);
-      const yawSin = Math.sin(camera.yaw);
-      const frameZ = -point.z;
-      const rotatedX = point.x * yawCos - frameZ * yawSin;
-      const rotatedZ = point.x * yawSin + frameZ * yawCos;
-      const pitchCos = Math.cos(camera.pitch);
-      const pitchSin = Math.sin(camera.pitch);
-      const rotatedY = point.y * pitchCos - rotatedZ * pitchSin;
-      camera.panX = -rotatedX;
-      camera.panY = -rotatedY;
-      render();
-      return true;
+      return setOrbitFocus("player");
     }
 
     function getCamera() {
-      return { ...camera };
+      return { ...camera, pivot: { ...pivot } };
     }
 
     function worldFromCoords(coords) {
@@ -171,6 +251,7 @@
     }
 
     function project(point) {
+      point = { x: point.x - pivot.x, y: point.y - pivot.y, z: point.z - pivot.z };
       const yawCos = Math.cos(camera.yaw);
       const yawSin = Math.sin(camera.yaw);
       // Reflect the depth-plane Z basis so the 3D top view uses the same
@@ -408,6 +489,8 @@
 
     canvas.addEventListener("pointerdown", (event) => {
       if (event.button === 2) return;
+      pauseOrbit();
+      if (event.shiftKey || event.button === 1) setOrbitFocus("free");
       event.preventDefault();
       drag = { x: event.clientX, y: event.clientY, pan: event.shiftKey || event.button === 1 };
       canvas.setPointerCapture(event.pointerId);
@@ -446,6 +529,9 @@
     canvas.addEventListener("dblclick", reset);
     canvas.addEventListener("contextmenu", (event) => event.preventDefault());
     global.addEventListener("resize", resize);
+    global.document?.addEventListener("visibilitychange", () => {
+      if (global.document.hidden) pauseOrbit();
+    });
 
     return {
       supported: true,
@@ -455,6 +541,11 @@
       zoom,
       snapToUser,
       getCamera,
+      setOrbitFocus,
+      getOrbitState,
+      startOrbit,
+      pauseOrbit,
+      setActive,
     };
   }
 

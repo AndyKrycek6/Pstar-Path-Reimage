@@ -2,6 +2,6 @@
   "name": "pilgrim-star-path-v37",
   "version": "0.37.0",
   "private": true,
-  "scripts": { "test": "node --test tests/regression.test.cjs" },
+  "scripts": { "test": "node --test tests/*.test.cjs" },
   "devDependencies": { "jsdom": "26.1.0" }
 }

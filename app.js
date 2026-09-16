@@ -87,7 +87,7 @@
     arrangeMobilePanels();
     window.matchMedia("(max-width: 920px)").addEventListener("change", arrangeMobilePanels);
     applyTopPanelOrder();
-    map3d = window.Pilgrim3D ? window.Pilgrim3D.create(els.starMap3d, { onZoom: handle3DZoom }) : null;
+    map3d = window.Pilgrim3D ? window.Pilgrim3D.create(els.starMap3d, { onZoom: handle3DZoom, onOrbitChange: syncOrbitControls }) : null;
     if (!map3d?.supported) {
       state.settings.mapView = "2d";
       els.mapViewToggle.disabled = true;
@@ -129,6 +129,7 @@
   }
 
   function switchView(viewName) {
+    map3d?.setActive?.(viewName === "map" && is3DMap());
     $$("[data-view]").forEach((button) => {
       const active = button.dataset.view === viewName;
       button.classList.toggle("is-active", active);
@@ -170,6 +171,14 @@
     els.snapUserButton.addEventListener("click", snapToUser);
     els.nametagToggleButton.addEventListener("click", toggleNametags);
     els.mapViewToggle.addEventListener("click", toggleMapView);
+    document.getElementById("orbitFocusSelect").addEventListener("change", (event) => {
+      map3d?.setOrbitFocus(event.target.value);
+    });
+    document.getElementById("orbitToggleButton").addEventListener("click", () => {
+      if (!is3DMap()) return;
+      if (map3d.getOrbitState().running) map3d.pauseOrbit();
+      else map3d.startOrbit();
+    });
     els.localModeButton.addEventListener("click", toggleLocalMode);
     els.addMockButton.addEventListener("click", openWaypointDialog);
     els.restoreWaypointsButton.addEventListener("click", restoreWaypoints);
@@ -936,6 +945,8 @@
 
   function render3DMap(route, target) {
     const active = is3DMap();
+    document.getElementById("orbitControls").hidden = !active;
+    map3d?.setActive?.(active && !document.querySelector('[data-view-panel="map"]').hidden);
     els.mapCanvasWrap.classList.toggle("is-3d-mode", active);
     els.starMap.style.display = active ? "none" : "";
     els.starMap3d.style.display = active ? "block" : "none";
@@ -1213,6 +1224,17 @@
     logActivity(state.settings.mapView === "3d" ? "3D orbit map enabled" : "2D projection restored");
     renderAll();
     showToast(state.settings.mapView === "3d" ? "3D orbit map enabled." : "2D star map restored.");
+  }
+
+  function syncOrbitControls(orbit) {
+    const select = document.getElementById("orbitFocusSelect");
+    select.value = orbit.focus;
+    select.querySelector('[value="player"]').disabled = !orbit.playerAvailable;
+    select.querySelector('[value="destination"]').disabled = !orbit.destinationAvailable;
+    const button = document.getElementById("orbitToggleButton");
+    button.textContent = orbit.running ? "Pause orbit" : "Start orbit";
+    button.setAttribute("aria-pressed", String(orbit.running));
+    document.getElementById("orbitStatus").textContent = `${orbit.running ? "Orbiting" : "Paused"} · 360° in 2 minutes`;
   }
 
   function toggleNametags() {

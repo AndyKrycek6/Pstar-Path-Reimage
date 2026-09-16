@@ -53,6 +53,11 @@ textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); 
 /* Readouts wrap independently instead of colliding on narrow maps. */
 .map-overlay-bottom { flex-wrap: wrap; gap: 6px 18px; line-height: 1.5; }
 .map-overlay-bottom > span { flex: 1 1 240px; min-width: 0; overflow-wrap: anywhere; }
+.orbit-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; padding: 12px; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); font-size: 13px; }
+.orbit-controls label { color: var(--text-soft); }
+.orbit-controls select { max-width: 100%; min-width: 0; min-height: 44px; padding: 8px 12px; border: 1px solid var(--line-strong); border-radius: 6px; background: var(--bg-deep); color: var(--text); font: inherit; }
+.orbit-controls small { flex-basis: 100%; color: var(--text-soft); line-height: 1.5; }
+.orbit-controls button[aria-pressed="true"] { border-color: var(--cyan); color: var(--cyan); }
 .input-help { color: var(--text-soft); font-size: 12px; line-height: 1.6; margin: 9px 0; }
 .input-help code { color: var(--cyan); font-size: 12px; overflow-wrap: anywhere; }
 .inline-error { color: var(--danger); font-size: 13px; line-height: 1.5; margin: 0; }

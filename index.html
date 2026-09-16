@@ -9,7 +9,7 @@
     />
     <title>Pilgrim Star Path Reimagined</title>
     <link rel="stylesheet" href="styles.css?v=38" />
-    <link rel="stylesheet" href="improvements.css?v=38.1" />
+    <link rel="stylesheet" href="improvements.css?v=38.2" />
   </head>
   <body>
     <div class="ambient-glow ambient-glow-one"></div>
@@ -303,6 +303,17 @@
                   <button class="map-tool reset-map-tool" id="resetMapButton" aria-label="Reset map view">⟲</button>
               <button class="map-tool map-view-toggle" id="mapViewToggle" type="button" aria-label="2D map active; switch to 3D" aria-pressed="false" title="2D map active · click for 3D">2D</button>
                 </div>
+              </div>
+              <div class="orbit-controls" id="orbitControls" role="group" aria-label="Automatic 3D orbit" hidden>
+                <label for="orbitFocusSelect">Orbit centre</label>
+                <select id="orbitFocusSelect">
+                  <option value="free">Free view</option>
+                  <option value="player">Player lock</option>
+                  <option value="destination">Destination lock</option>
+                </select>
+                <button class="secondary-button" id="orbitToggleButton" type="button" aria-pressed="false">Start orbit</button>
+                <span id="orbitStatus" role="status">Paused · 360° in 2 minutes</span>
+                <small>Drag to pause and adjust. Shift-drag to pan in free view.</small>
               </div>
               <div class="map-canvas-wrap" id="mapCanvasWrap">
                 <svg id="starMap" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive galaxy star map">
@@ -731,9 +742,9 @@
     </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
     <script src="calculations.js?v=38"></script>
-    <script src="map3d.js?v=38"></script>
+    <script src="map3d.js?v=38.2"></script>
     <script src="backup.js?v=38"></script>
-    <script src="app.js?v=38"></script>
+    <script src="app.js?v=38.2"></script>
   </body>
 </html>
 
