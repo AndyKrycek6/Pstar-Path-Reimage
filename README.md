@@ -1,4 +1,4 @@
-# Pilgrim Star Path — v37
+# Pilgrim Star Path — v0.39
 
 A local-first navigation console with 2D/3D maps, saved waypoints and a journey archive. This release fixes the v35 review findings and adds backup/restore and a more compact interface.
 
@@ -19,7 +19,7 @@ Records live in browser storage, not in these files. Copying the app folder does
 
 The supplied v35 source folder was left unchanged while preparing this release.
 
-## v37 updates
+## v0.39 updates
 
 ### Automatic 3D orbit
 
@@ -79,7 +79,7 @@ Developer tests: `npm install`, then `npm test`. Installation is optional and on
 ## Files
 
 - `index.html` — interface
-- `styles.css`, `improvements.css` — base styling and v36 layout/accessibility
+- `styles.css`, `improvements.css` — base styling, v0.39 layout and accessibility
 - `calculations.js` — coordinate validation and route estimates
 - `map3d.js` — existing Canvas renderer
 - `backup.js` — backup validation and storage transactions
