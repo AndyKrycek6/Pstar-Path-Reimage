@@ -8,8 +8,8 @@
       content="Pilgrim Star Path Reimagined — a local-first deep-space navigation console."
     />
     <title>Pilgrim Star Path Reimagined</title>
-    <link rel="stylesheet" href="styles.css?v=38" />
-    <link rel="stylesheet" href="improvements.css?v=38.2" />
+    <link rel="stylesheet" href="styles.css?v=39" />
+    <link rel="stylesheet" href="improvements.css?v=39" />
   </head>
   <body>
     <div class="ambient-glow ambient-glow-one"></div>
@@ -304,17 +304,6 @@
               <button class="map-tool map-view-toggle" id="mapViewToggle" type="button" aria-label="2D map active; switch to 3D" aria-pressed="false" title="2D map active · click for 3D">2D</button>
                 </div>
               </div>
-              <div class="orbit-controls" id="orbitControls" role="group" aria-label="Automatic 3D orbit" hidden>
-                <label for="orbitFocusSelect">Orbit centre</label>
-                <select id="orbitFocusSelect">
-                  <option value="free">Free view</option>
-                  <option value="player">Player lock</option>
-                  <option value="destination">Destination lock</option>
-                </select>
-                <button class="secondary-button" id="orbitToggleButton" type="button" aria-pressed="false">Start orbit</button>
-                <span id="orbitStatus" role="status">Paused · 360° in 2 minutes</span>
-                <small>Drag to pause and adjust. Shift-drag to pan in free view.</small>
-              </div>
               <div class="map-canvas-wrap" id="mapCanvasWrap">
                 <svg id="starMap" viewBox="0 0 1000 560" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Interactive galaxy star map">
                   <defs>
@@ -450,9 +439,20 @@
                   <button class="text-button" id="localModeButton" aria-pressed="false"><span class="status-dot"></span><span id="localModeLabel">Set local mode</span></button>
                 </div>
               </div>
+              <div class="orbit-controls" id="orbitControls" role="group" aria-label="Automatic 3D orbit" hidden>
+                <label for="orbitFocusSelect">Orbit centre</label>
+                <select id="orbitFocusSelect">
+                  <option value="free">Free view</option>
+                  <option value="player">Player lock</option>
+                  <option value="destination">Destination lock</option>
+                </select>
+                <button class="secondary-button" id="orbitToggleButton" type="button" aria-pressed="false">Start orbit</button>
+                <span id="orbitStatus" role="status">Paused · 360° in 2 minutes</span>
+                <small>Drag to pause and adjust. Shift-drag to pan in free view.</small>
+              </div>
             </article>
 
-            <aside class="telemetry-stack" aria-label="Route telemetry and stored waypoints">
+            <aside class="telemetry-stack" aria-label="Route telemetry">
               <article class="panel route-card" id="routePanel">
                 <div class="panel-heading compact-heading">
                   <div>
