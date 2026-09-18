@@ -127,7 +127,7 @@ textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); 
 }
 
 
-/* v39 decluttered map layout */
+/* v0.39 decluttered map layout */
 .destination-list-card,
 .activity-card {
   display: none !important;
