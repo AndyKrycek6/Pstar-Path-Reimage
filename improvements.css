@@ -1,5 +1,5 @@
 /* v36: readable controls and a shorter path from coordinates to the map. */
-/* v37: origin status and readable checkpoint notes. */
+/* v0.39: origin status, readable checkpoint notes and decluttered layout. */
 .hex-input-indicator { display: inline-flex; align-items: center; gap: 5px; }
 .hex-input-indicator .mini-dot { width: 8px; height: 8px; flex-shrink: 0; border-radius: 50%; background: currentColor; }
 .hex-input-indicator.is-empty { color: #ffd0a7; }
