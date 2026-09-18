@@ -125,3 +125,17 @@ textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
+
+
+/* v39 decluttered map layout */
+.destination-list-card,
+.activity-card {
+  display: none !important;
+}
+
+.orbit-controls {
+  margin-top: 14px;
+  margin-bottom: 0;
+  border-color: rgba(100, 232, 255, .18);
+  background: rgba(5, 17, 29, .72);
+}
