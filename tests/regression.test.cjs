@@ -238,3 +238,26 @@ test('note popup edits the clicked checkpoint, cancels drafts, clears and persis
 });
 
 
+
+test('v0.40 migrates saved capital selection and deletions without changing custom destinations', async () => {
+  const oldAmino = '064A:0082:01B9:0051';
+  const oldAgt = '0971:0081:0EDD:0118';
+  const a = await app({
+    [prefix+'session']: JSON.stringify({ location: null, selectedDestinationAddress: oldAmino }),
+    [prefix+'waypoints']: JSON.stringify({ custom: [], removedCommunity: [oldAgt], deletedCustom: [] }),
+  });
+  assert.equal(a.el('targetAddress').textContent, '064A:0082:01B9:0022');
+  assert.ok(!a.el('destinationSelect').textContent.includes('AGT Embassy'));
+  a.click('restoreWaypointsButton');
+  assert.ok(a.el('destinationSelect').textContent.includes('AGT Embassy'));
+  a.select(2);
+  assert.equal(a.el('targetAddress').textContent, '043D:0072:0D44:005F');
+  a.origin('043D:0072:0D44:005F');
+  assert.equal(Number(a.el('destinationDistanceValue').textContent), 0);
+  a.add('My old capital stop', oldAgt);
+  const saved = snapshot(a.w); a.close();
+  const b = await app(saved);
+  assert.equal(b.el('targetAddress').textContent, oldAgt);
+  assert.ok(b.el('destinationSelect').selectedOptions[0].textContent.includes('My old capital stop'));
+  b.close();
+});

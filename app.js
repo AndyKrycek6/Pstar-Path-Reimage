@@ -40,9 +40,14 @@
   });
   const COMMUNITY_DESTINATIONS = [
     { name: "Galactic Hub Project · HUB16-205 Bixiann", address: "041C:004F:0D89:0205", coords: { x: 1052, y: 79, z: 3465 }, accent: "violet", permanent: true, community: "Galactic Hub Project" },
-    { name: "Amino Hub · Amino Prime AH", address: "064A:0082:01B9:0051", coords: { x: 1610, y: 130, z: 441 }, accent: "amber", permanent: true, community: "Amino Hub" },
-    { name: "AGT · Apygen K50 / Rigusu", address: "0971:0081:0EDD:0118", coords: { x: 2417, y: 129, z: 3805 }, accent: "blue", permanent: true, community: "Alliance of Galactic Travellers" },
+    { name: "Amino Hub · Amino Prime - AH", address: "064A:0082:01B9:0022", coords: { x: 1610, y: 130, z: 441 }, accent: "amber", permanent: true, community: "Amino Hub" },
+    { name: "AGT · AGT Embassy", address: "043D:0072:0D44:005F", coords: { x: 1085, y: 114, z: 3396 }, accent: "blue", permanent: true, community: "Alliance of Galactic Travellers" },
   ];
+  // Only migrate built-in references; custom destinations and journey history stay exact.
+  function currentCommunityAddress(address) {
+    const normalized = String(address || "").toUpperCase();
+    return ({ "064A:0082:01B9:0051": "064A:0082:01B9:0022", "0971:0081:0EDD:0118": "043D:0072:0D44:005F" })[normalized] || normalized;
+  }
   const initialJourneyStore = readJourneyStore();
   const initialWaypointStore = readWaypointStore();
   const initialDestinations = [
@@ -349,7 +354,7 @@
       ? math.calculateRoute(state.location.coords, mapTarget.coords, state.settings, GALAXY_CENTRE)
       : null;
     state.currentRoute = route;
-    renderQuickStart(route, target);
+
     applyMapHeight();
     syncNametagToggle();
     syncSnapUserButton();
@@ -445,12 +450,6 @@
       : "Same region — 0 region jumps. Check the destination system address in-game.";
   }
 
-  function renderQuickStart(route, target) {
-    document.getElementById("compactRouteSummary").textContent = route?.sameRegion
-      ? arrivalText(target)
-      : route ? `≈ ${route.estimatedJumps} jumps · ${math.formatNumber(route.destinationDistance, 0)} LY · ${orientationInstruction(route)}`
-      : state.location ? "Choose a destination to see your route." : "Enter your signal-booster address to begin.";
-  }
 
   function backupSnapshot() {
     const selected = state.destinations[state.selectedDestinationIndex];
@@ -2036,7 +2035,8 @@
       const stored = JSON.parse(localStorage.getItem(SESSION_KEY)) || {};
       const originWasCleared = Object.prototype.hasOwnProperty.call(stored, "location") && stored.location === null;
       const storedIndex = Number.isInteger(stored.selectedDestinationIndex) ? stored.selectedDestinationIndex : null;
-      const storedAddress = String(stored.selectedDestinationAddress || "").toUpperCase();
+      const rawAddress = String(stored.selectedDestinationAddress || "").toUpperCase();
+      const storedAddress = availableDestinations.some(d => d.userCreated && d.address === rawAddress) ? rawAddress : currentCommunityAddress(rawAddress);
       const addressIndex = storedAddress
         ? availableDestinations.findIndex((destination) => destination.address === storedAddress)
         : -1;
@@ -2110,7 +2110,7 @@
       const deletedCustom = rawDeletedCustom.filter((waypoint) => !customAddresses.has(waypoint.address));
       const knownAddresses = new Set(COMMUNITY_DESTINATIONS.map((destination) => destination.address));
       const removedAddresses = Array.isArray(stored.removedCommunity)
-        ? stored.removedCommunity.filter((address) => knownAddresses.has(String(address).toUpperCase())).map((address) => String(address).toUpperCase())
+        ? stored.removedCommunity.map(currentCommunityAddress).filter((address) => knownAddresses.has(address))
         : [];
       return { custom, deletedCustom, removedAddresses };
     } catch (_) {

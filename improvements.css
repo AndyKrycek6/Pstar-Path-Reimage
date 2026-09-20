@@ -160,3 +160,11 @@ textarea:focus-visible, summary:focus-visible { outline: 2px solid var(--cyan); 
   border-color: rgba(100, 232, 255, .18);
   background: rgba(5, 17, 29, .72);
 }
+
+/* v0.40: route data lives with its destination. */
+.main-grid { grid-template-columns: minmax(0, 1fr); }
+.telemetry-stack[hidden] { display: none; }
+.destination-telemetry { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.destination-telemetry h3 { margin: 3px 0 0; font-size: 14px; }
+.destination-telemetry .route-row { grid-template-columns: 76px minmax(0, 1fr); }
+.destination-telemetry .route-row strong { white-space: normal; overflow-wrap: anywhere; }

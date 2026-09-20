@@ -8,8 +8,8 @@
       content="Pilgrim Star Path Reimagined — a local-first deep-space navigation console."
     />
     <title>Pilgrim Star Path Reimagined</title>
-    <link rel="stylesheet" href="styles.css?v=0.39" />
-    <link rel="stylesheet" href="improvements.css?v=0.39.1" />
+    <link rel="stylesheet" href="styles.css?v=0.40" />
+    <link rel="stylesheet" href="improvements.css?v=0.40" />
   </head>
   <body>
     <div class="ambient-glow ambient-glow-one"></div>
@@ -28,7 +28,7 @@
           <div class="brand-kicker">INTERGALACTIC NAVIGATION NETWORK</div>
           <div class="brand-title">PILGRIM <span>STAR PATH</span></div>
         </div>
-        <span class="version-badge">REIMAGINED / v0.39</span>
+        <span class="version-badge">REIMAGINED / v0.40</span>
       </div>
 
       <div class="topbar-right">
@@ -68,7 +68,7 @@
             <span class="signal-pulse"></span>
             <span>LOCAL</span>
           </div>
-          <div class="rail-build">BUILD 039</div>
+          <div class="rail-build">BUILD 040</div>
         </div>
       </aside>
 
@@ -199,6 +199,23 @@
                 <p id="guidanceText">Select a destination to calculate guidance.</p>
               </div>
             </details>
+                          <section class="destination-telemetry" id="routePanel" aria-label="Route telemetry">
+                <div class="panel-heading compact-heading">
+                  <div>
+                    <span class="panel-label">LIVE ROUTE</span>
+                    <h3>Route telemetry</h3>
+                  </div>
+                  <span class="panel-state state-waiting" id="routeState">WAITING</span>
+                </div>
+                <details class="extra-details"><summary>Coordinates &amp; distance estimates</summary>
+                <div class="route-table">
+                  <div class="route-row"><span class="route-key">POS</span><strong id="posValue">—</strong></div>
+                  <div class="route-row"><span class="route-key">DEST</span><strong id="destValue">—</strong></div>
+                  <div class="route-row"><span class="route-key">TO CENTRE</span><strong><span id="centerDistanceValue">—</span> <small>LY</small></strong></div>
+                  <div class="route-row"><span class="route-key">TO DEST</span><strong><span id="destinationDistanceValue">—</span> <small>LY</small></strong></div>
+                </div>
+                </details>
+              </section>
             </article>
 
             <article class="panel top-panel advisory-card" id="advisoryPanel" data-top-panel="advisory" data-top-panel-label="ROUTE ADVISORY">
@@ -280,7 +297,6 @@
             </article>
           </section>
 
-          <div class="route-overview" aria-live="polite"><strong id="compactRouteSummary">Enter your signal-booster address to begin.</strong><p>Distance and jump estimates use 400 LY per region. Star positions and available stops can change the actual route. The reference ring is illustrative.</p></div>
           <section class="main-grid">
             <article class="panel map-panel">
               <div class="map-panel-heading">
@@ -445,24 +461,8 @@
               </div>
             </article>
 
-            <aside class="telemetry-stack" aria-label="Route telemetry">
-              <article class="panel route-card" id="routePanel">
-                <div class="panel-heading compact-heading">
-                  <div>
-                    <span class="panel-label">LIVE ROUTE</span>
-                    <h2>Route telemetry</h2>
-                  </div>
-                  <span class="panel-state state-waiting" id="routeState">WAITING</span>
-                </div>
-                <details class="extra-details"><summary>Coordinates &amp; distance estimates</summary>
-                <div class="route-table">
-                  <div class="route-row"><span class="route-key">POS</span><strong id="posValue">—</strong></div>
-                  <div class="route-row"><span class="route-key">DEST</span><strong id="destValue">—</strong></div>
-                  <div class="route-row"><span class="route-key">TO CENTRE</span><strong><span id="centerDistanceValue">—</span> <small>LY</small></strong></div>
-                  <div class="route-row"><span class="route-key">TO DEST</span><strong><span id="destinationDistanceValue">—</span> <small>LY</small></strong></div>
-                </div>
-                </details>
-              </article>
+            <aside class="telemetry-stack" hidden>
+
 
               <article class="panel destination-list-card">
                 <div class="panel-heading compact-heading">
@@ -735,10 +735,10 @@
       </div>
     </dialog>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-    <script src="calculations.js?v=0.39"></script>
-    <script src="map3d.js?v=0.39"></script>
-    <script src="backup.js?v=0.39"></script>
-    <script src="app.js?v=0.39.1"></script>
+    <script src="calculations.js?v=0.40"></script>
+    <script src="map3d.js?v=0.40"></script>
+    <script src="backup.js?v=0.40"></script>
+    <script src="app.js?v=0.40"></script>
   </body>
 </html>
 

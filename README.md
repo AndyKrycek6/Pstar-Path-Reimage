@@ -1,6 +1,12 @@
-# Pilgrim Star Path — v0.39
+# Pilgrim Star Path — v0.40
 
 A local-first navigation console with 2D/3D maps, saved waypoints and a journey archive. Includes backup/restore, automatic 3D orbit and a compact mobile interface.
+
+## v0.40 updates
+
+- Pahefu's support link text is 20% larger.
+- Removed the signal-booster prompt box and integrated route telemetry into Destination profile.
+- Refreshed the built-in capital destinations; see [coordinate sources](CAPITALS.md). Existing selections and removed built-in destinations follow the updated addresses. Custom waypoints and journey history retain their saved coordinates.
 
 ## v0.39 updates
 
@@ -39,7 +45,7 @@ Use **Pause orbit** to stop. Dragging also pauses the orbit; Shift-drag switches
 
 - Streamlined map with Add destination and a dedicated Guide tab for field instructions and map controls.
 - Expandable checkpoint notes, destination details and vertical telemetry.
-- At widths up to 920px, detailed guidance moves below the map; a concise route summary stays above it.
+- At widths up to 920px, detailed guidance moves below the map; origin and destination controls stay above it.
 - Larger essential text, controls and focus indicators, with reduced-motion support.
 - Traveller notes and backup controls replace development-facing panels.
 
@@ -54,7 +60,7 @@ Failed storage writes show a persistent warning. **Save again** retries the enti
 ## Files
 
 - `index.html` — interface
-- `styles.css`, `improvements.css` — base styling, v0.39 layout and accessibility
+- `styles.css`, `improvements.css` — base styling, v0.40 layout and accessibility
 - `calculations.js` — coordinate validation and route estimates
 - `map3d.js` — existing Canvas renderer
 - `backup.js` — backup validation and storage transactions

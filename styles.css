@@ -131,7 +131,7 @@ h1 { max-width: 700px; margin-top: 8px; color: #f2fcff; font-size: clamp(28px, 3
 h2 { color: #e6f7fb; font-size: 16px; line-height: 1.2; font-weight: 650; letter-spacing: -.01em; }
 .view-subtitle { max-width: 680px; margin-top: 10px; color: var(--text-soft); font-size: 13px; line-height: 1.55; }
 .support-copy { margin-top: 11px; }
-.support-link { color: #f5c78a; font: 700 9px "Cascadia Mono", Consolas, monospace; letter-spacing: .04em; text-decoration: none; }
+.support-link { color: #f5c78a; font: 700 10.8px "Cascadia Mono", Consolas, monospace; letter-spacing: .04em; text-decoration: none; }
 .support-link:hover { color: #fff1d6; text-decoration: underline; text-underline-offset: 3px; }
 .heading-actions { gap: 9px; }
 .ghost-button, .text-button, .small-action, .map-tool, .icon-button { border: 1px solid var(--line); color: var(--text-soft); background: rgba(9, 25, 37, .68); transition: .18s ease; }
