@@ -446,13 +446,6 @@
   }
 
   function renderQuickStart(route, target) {
-    const originStep = document.getElementById("originStep");
-    const targetStep = document.getElementById("targetStep");
-    originStep.textContent = state.location ? "1 · Origin ready" : "1 · Enter your location";
-    targetStep.textContent = target ? "2 · Destination selected" : "2 · Choose destination";
-    originStep.classList.toggle("is-complete", Boolean(state.location));
-    targetStep.classList.toggle("is-complete", Boolean(target));
-    document.getElementById("guidanceStep").textContent = route ? "3 · Follow guidance below" : "3 · Follow guidance";
     document.getElementById("compactRouteSummary").textContent = route?.sameRegion
       ? arrivalText(target)
       : route ? `≈ ${route.estimatedJumps} jumps · ${math.formatNumber(route.destinationDistance, 0)} LY · ${orientationInstruction(route)}`
@@ -500,12 +493,6 @@
     const input = document.getElementById("backupFileInput");
     const dialog = document.getElementById("backupImportDialog");
     const status = document.getElementById("backupStatus");
-    document.getElementById("originStep").addEventListener("click", () => {
-      state.settings.topPanelsCollapsed = false; syncTopPanels(); els.locationInput.focus();
-    });
-    document.getElementById("targetStep").addEventListener("click", () => {
-      state.settings.topPanelsCollapsed = false; syncTopPanels(); els.destinationSelect.focus();
-    });
     document.getElementById("exportBackupButton").addEventListener("click", () => {
       try {
         const json = window.PilgrimBackup.encode(backupSnapshot());

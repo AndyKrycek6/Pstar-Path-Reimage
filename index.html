@@ -9,7 +9,7 @@
     />
     <title>Pilgrim Star Path Reimagined</title>
     <link rel="stylesheet" href="styles.css?v=0.39" />
-    <link rel="stylesheet" href="improvements.css?v=0.39" />
+    <link rel="stylesheet" href="improvements.css?v=0.39.1" />
   </head>
   <body>
     <div class="ambient-glow ambient-glow-one"></div>
@@ -58,9 +58,9 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h3M11 12h9M4 18h10M18 18h2"/><circle cx="16" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="16" cy="18" r="2"/></svg>
             <span>CONFIG</span>
           </button>
-          <button class="rail-button" data-view="help" aria-label="Help" title="Help">
+          <button class="rail-button" data-view="guide" aria-label="Guide" title="Guide">
             <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.8 9a2.35 2.35 0 1 1 3.8 1.85c-.95.73-1.6 1.17-1.6 2.65M12 17.2h.01"/></svg>
-            <span>HELP</span>
+            <span>GUIDE</span>
           </button>
         </div>
         <div class="rail-footer">
@@ -78,8 +78,8 @@
           <div class="view-heading">
             <div>
               <div class="eyebrow">NAVIGATION CONSOLE <span class="eyebrow-line"></span> EUCLID 01</div>
-              <h1>Traveller, your journey awaits</h1>
-              <p class="view-subtitle">Plot a path through the stars</p>
+
+
               <p class="support-copy"><a class="support-link" href="https://pahefu.github.io/pilgrimstarpath/" target="_blank" rel="noopener noreferrer">Support the original creator — visit Pahefu's Pilgrim Star Path and consider a donation ↗</a></p>
             </div>
             <div class="heading-actions">
@@ -98,13 +98,6 @@
             </div>
           </div>
 
-          <nav class="quick-start" aria-label="Plan your route">
-            <button id="originStep" type="button">1 · Enter your location</button>
-            <span aria-hidden="true">→</span>
-            <button id="targetStep" type="button">2 · Choose destination</button>
-            <span aria-hidden="true">→</span>
-            <span id="guidanceStep">3 · Follow guidance</span>
-          </nav>
           <section class="summary-grid" id="summaryGrid" aria-label="Route summary">
             <article class="panel top-panel location-card" id="locationPanel" data-top-panel="location" data-top-panel-label="USER LOCATION">
               <div class="panel-heading">
@@ -142,7 +135,7 @@
               </div>
               <button class="waypoint-entry-button" id="homeAddWaypointButton">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 8v8M8 12h8"/></svg>
-                <span>Add waypoint</span>
+                <span>Add destination</span>
                 <small>NEW TARGET</small>
               </button>
               <div class="mini-stat-row">
@@ -499,29 +492,7 @@
           </section>
 
           <section id="belowMapDetails" aria-label="Detailed flight guidance"></section>
-          <details class="orientation-dropdown panel">
-            <summary>
-              <span class="orientation-summary-icon">⌖</span>
-              <span class="orientation-summary-copy">
-                <span class="panel-label">FIELD INSTRUCTION</span>
-                <strong>How to orientate yourself</strong>
-              </span>
-              <span class="orientation-summary-hint">OPEN GUIDE <b>+</b></span>
-            </summary>
-            <div class="orientation-content">
-              <div class="orientation-quote-block">
-                <span class="panel-label">ORIGINAL PILGRIM STAR PATH INSTRUCTION</span>
-                <p id="orientationInstructionText">Looking at the center, turn 177.02 degrees to your right.</p>
-                <small>The Galactic Centre is your reference north. Turn from that line toward the selected waypoint.</small>
-              </div>
-              <div class="orientation-steps">
-                <div><b>01</b><p><strong>Enter your location.</strong> Use the four-block galactic address, then update the origin checkpoint.</p></div>
-                <div><b>02</b><p><strong>Face the centre.</strong> Treat the Galactic Centre marker and the GC compass bearing as north.</p></div>
-                <div><b>03</b><p><strong>Turn the displayed bearing.</strong> The route tells you how many degrees to turn and whether to turn left or right.</p></div>
-                <div><b>04</b><p><strong>Check your vertical offset.</strong> Above or below shows the Y-axis difference; use the 3D map to inspect that height.</p></div>
-              </div>
-            </div>
-          </details>
+
 
           <section class="quick-strip">
             <div class="quick-item"><span class="quick-icon">⌖</span><span><strong>Coordinate engine</strong><small>Hex and decimal inputs supported</small></span></div>
@@ -538,7 +509,7 @@
               <h1>Keep your destinations close.</h1>
               <p class="view-subtitle">Three community-civilization waypoints are stored locally, with custom entries available for your own route. Pilgrim Star remains a highlighted map reference.</p>
             </div>
-            <button class="primary-button" id="directoryAddButton"><span class="button-plus">+</span> Add custom target</button>
+            <button class="primary-button" id="directoryAddButton"><span class="button-plus">+</span> Add destination</button>
           </div>
           <div class="directory-grid">
             <article class="panel directory-panel">
@@ -624,18 +595,41 @@
           </div>
         </section>
 
-        <section class="view" data-view-panel="help" id="helpView" hidden>
+        <section class="view" data-view-panel="guide" id="guideView" hidden>
           <div class="view-heading">
             <div>
               <div class="eyebrow">FIELD MANUAL <span class="eyebrow-line"></span> LOCAL BUILD</div>
-              <h1>Read the map by its signals.</h1>
-              <p class="view-subtitle">A quick guide to the first Pilgrim Star Path Reimagined prototype.</p>
+              <h1>Navigation guide</h1>
+              <p class="view-subtitle">Field instructions, map controls and keeping your journey records.</p>
             </div>
           </div>
+          <details class="orientation-dropdown panel" open>
+            <summary>
+              <span class="orientation-summary-icon">⌖</span>
+              <span class="orientation-summary-copy">
+                <span class="panel-label">FIELD INSTRUCTION</span>
+                <strong>How to orientate yourself</strong>
+              </span>
+              <span class="orientation-summary-hint">OPEN GUIDE <b>+</b></span>
+            </summary>
+            <div class="orientation-content">
+              <div class="orientation-quote-block">
+                <span class="panel-label">ORIGINAL PILGRIM STAR PATH INSTRUCTION</span>
+                <p id="orientationInstructionText">Looking at the center, turn 177.02 degrees to your right.</p>
+                <small>The Galactic Centre is your reference north. Turn from that line toward the selected waypoint.</small>
+              </div>
+              <div class="orientation-steps">
+                <div><b>01</b><p><strong>Enter your location.</strong> Use the four-block galactic address, then update the origin checkpoint.</p></div>
+                <div><b>02</b><p><strong>Face the centre.</strong> Treat the Galactic Centre marker and the GC compass bearing as north.</p></div>
+                <div><b>03</b><p><strong>Turn the displayed bearing.</strong> The route tells you how many degrees to turn and whether to turn left or right.</p></div>
+                <div><b>04</b><p><strong>Check your vertical offset.</strong> Above or below shows the Y-axis difference; use the 3D map to inspect that height.</p></div>
+              </div>
+            </div>
+          </details>
           <div class="help-grid">
             <article class="panel help-card"><span class="help-number">01</span><h2>Set your origin</h2><p>Enter a four-block hexadecimal address such as <code>0432:0076:0D66:0172</code>, or use three decimal coordinates separated by commas.</p></article>
-            <article class="panel help-card"><span class="help-number">02</span><h2>Choose a waypoint</h2><p>Use the destination selector or click a stored waypoint. The route telemetry and map markers update immediately.</p></article>
-            <article class="panel help-card"><span class="help-number">03</span><h2>Explore the projection</h2><p>Drag to pan and use the smooth wheel or map controls to zoom. Use Snap to User to centre either map on your origin, or toggle map nametags when you want a cleaner view.</p></article>
+            <article class="panel help-card"><span class="help-number">02</span><h2>Choose a destination</h2><p>Use the destination selector or click a stored waypoint. The route telemetry and map markers update immediately.</p></article>
+            <article class="panel help-card"><span class="help-number">03</span><h2>Explore the projection</h2><p>In 2D, drag to pan. In 3D, drag to tilt and rotate, or Shift-drag to pan. Scroll or use the map controls to zoom. For a slow automatic orbit, choose Free view, Player lock or Destination lock, then Start orbit. One revolution takes two minutes; dragging or leaving the map pauses it. Snap to User centres the map on your origin.</p></article>
             <article class="panel help-card"><span class="help-number">04</span><h2>Keep the journey</h2><p>Open Journeys to start a named flight record. Rename checkpoints or add notes below the origin status. Active journeys resume from their saved checkpoints, while completed journeys can be restored to replay their route in both map views.</p></article>
           </div>
           <article class="panel help-note"><div class="help-note-icon">⌁</div><div><span class="panel-label">BUILD NOTE</span><h2>Local-first, expandable later.</h2><p>Your saved settings and session state remain in this browser. Distances use the original Pilgrim Star Path scale of 400 LY per region. They are estimates between regions, not exact distances between stars. The black-hole ring is illustrative and does not predict an exit. Export backups in Config.</p></div></article>
@@ -648,7 +642,7 @@
         <div class="dialog-header">
           <div>
             <span class="panel-label">LOCAL DIRECTORY / NEW ENTRY</span>
-            <h2 id="waypointDialogTitle">Add a waypoint</h2>
+            <h2 id="waypointDialogTitle">Add a destination</h2>
           </div>
           <button class="dialog-close" type="button" id="closeWaypointButton" aria-label="Close add waypoint dialog">×</button>
         </div>
@@ -667,7 +661,7 @@
         <div class="dialog-error" id="waypointError" role="alert" aria-live="polite"></div>
         <div class="dialog-actions">
           <button class="ghost-button" type="button" id="cancelWaypointButton">Cancel</button>
-          <button class="primary-button" type="submit">Save waypoint</button>
+          <button class="primary-button" type="submit">Save destination</button>
         </div>
       </form>
     </dialog>
@@ -744,7 +738,7 @@
     <script src="calculations.js?v=0.39"></script>
     <script src="map3d.js?v=0.39"></script>
     <script src="backup.js?v=0.39"></script>
-    <script src="app.js?v=0.39"></script>
+    <script src="app.js?v=0.39.1"></script>
   </body>
 </html>
 

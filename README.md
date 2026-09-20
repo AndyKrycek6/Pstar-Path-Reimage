@@ -1,23 +1,6 @@
 # Pilgrim Star Path — v0.39
 
-A local-first navigation console with 2D/3D maps, saved waypoints and a journey archive. This release fixes the v35 review findings and adds backup/restore and a more compact interface.
-
-## Open the app
-
-Open `index.html` in a browser. Keep the accompanying JavaScript and CSS files in the same folder. There is no build step, account or runtime dependency.
-
-Alternatively, serve this folder using your usual local web server. Keep its address and port unchanged between versions to reuse browser storage.
-
-## Upgrading from v35 without losing records
-
-Records live in browser storage, not in these files. Copying the app folder does not copy saved journeys.
-
-- **Web server:** replace app files at the same web address, and use the same browser/profile. v36 reads the existing v35 storage keys.
-- **Opening index.html directly:** browsers can isolate storage by file path. Keep a separate copy of the old app files, then put the v36 files into the **original app folder**, replacing the old files so the path to `index.html` stays the same. Open it in the same browser/profile. This is the safest available upgrade route from v35, which has no backup export button.
-- Once your records appear, use **Config → Export backup**. Keep the JSON file. You can then move to another folder/browser and use **Import backup**.
-- An empty journey list in a new folder does not mean the records at the original browser/path were deleted. Return to the original location before clearing browser data.
-
-The supplied v35 source folder was left unchanged while preparing this release.
+A local-first navigation console with 2D/3D maps, saved waypoints and a journey archive. Includes backup/restore, automatic 3D orbit and a compact mobile interface.
 
 ## v0.39 updates
 
@@ -54,7 +37,7 @@ Use **Pause orbit** to stop. Dragging also pauses the orbit; Shift-drag switches
 
 ### Interface
 
-- Three-step origin → destination → guidance flow. Origin examples have been removed.
+- Streamlined map with Add destination and a dedicated Guide tab for field instructions and map controls.
 - Expandable checkpoint notes, destination details and vertical telemetry.
 - At widths up to 920px, detailed guidance moves below the map; a concise route summary stays above it.
 - Larger essential text, controls and focus indicators, with reduced-motion support.
@@ -67,14 +50,6 @@ Use **Pause orbit** to stop. Dragging also pauses the orbit; Shift-drag switches
 **Import backup** validates the file and previews its contents. Nothing changes until **Replace with backup** is selected. Cancel preserves current data. Restore replaces rather than merges records; export first to keep both sets. Import limit: 20 MB.
 
 Failed storage writes show a persistent warning. **Save again** retries the entire current state. If a multi-key write fails, the app attempts to restore previous values. If storage cannot be recovered, keep the backup and export the current tab before closing.
-
-## Validation
-
-21 automated checks passed using Node and a simulated DOM: coordinate validation, distance fixtures, reload persistence, checkpoint recording, arrival states, responsive document order, reset cancellation, backup preview/cancel/restore, malformed files, failed writes, rollback/retry, and export of unsaved state.
-
-The available browser security policy blocked local previews. No screenshot-based desktop/mobile check or live 3D rendering check was completed. The existing Canvas renderer was not changed.
-
-Developer tests: `npm install`, then `npm test`. Installation is optional and only needed to run tests; the app works directly from `index.html`.
 
 ## Files
 
